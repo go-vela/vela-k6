@@ -1,0 +1,13 @@
+vendor/
+
+# Output of tests
+perf-test.json
+coverage.*
+unit-tests.xml
+
+# temporary local testing
+/k6-test
+.env
+
+# binary
+vela-k6
