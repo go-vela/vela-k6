@@ -5,7 +5,6 @@
 BIN_NAME ?= vela-k6
 BIN_LOCATION ?= ./
 MAIN_LOCATION ?= .
-API_PORT ?= 8080
 
 .PHONY: deps
 deps: go-tidy golangci-lint ## Install golang dependencies for the application
@@ -49,7 +48,6 @@ clean-all:
 .PHONY: test-all
 test-all:	
 	@go test ./... -coverprofile=coverage.out
-
 
 .PHONY: go-tidy
 go-tidy:	

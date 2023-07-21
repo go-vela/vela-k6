@@ -6,6 +6,7 @@ package plugin
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -17,7 +18,7 @@ import (
 	"sync"
 )
 
-const THRESHOLDS_BREACHED_EXIT_CODE = 99
+const thresholdsBreachedExitCode = 99
 
 type shellCommand interface {
 	Start() error
@@ -84,9 +85,11 @@ func buildK6Command(cfg *Config) (cmd shellCommand, err error) {
 	if !cfg.LogProgress {
 		commandArgs = append(commandArgs, "-q")
 	}
+
 	if cfg.OutputPath != "" {
 		outputDir := filepath.Dir(cfg.OutputPath)
 		err = os.MkdirAll(outputDir, os.FileMode(0755))
+
 		if err != nil {
 			return
 		}
@@ -97,8 +100,10 @@ func buildK6Command(cfg *Config) (cmd shellCommand, err error) {
 			commandArgs = append(commandArgs, "--out", fmt.Sprintf("json=%s", cfg.OutputPath))
 		}
 	}
+
 	commandArgs = append(commandArgs, cfg.ScriptPath)
 	cmd = buildCommand("k6", commandArgs...)
+
 	return
 }
 
@@ -108,32 +113,33 @@ func buildK6Command(cfg *Config) (cmd shellCommand, err error) {
 func RunPerfTests(cfg *Config) error {
 	err := verifyFileExists(cfg.ScriptPath)
 	if err != nil {
-		return fmt.Errorf("Error reading script file at %s: %s", cfg.ScriptPath, err)
+		return fmt.Errorf("error reading script file at %s: %w", cfg.ScriptPath, err)
 	}
 
 	cmd, err := buildK6Command(cfg)
 	if err != nil {
-		return fmt.Errorf("Error creating output directory: %s", err)
+		return fmt.Errorf("error creating output directory: %w", err)
 	}
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return fmt.Errorf("error getting stdout pipe: %s", err)
+		return fmt.Errorf("error getting stdout pipe: %w", err)
 	}
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return fmt.Errorf("error getting stderr pipe: %s", err)
+		return fmt.Errorf("error getting stderr pipe: %w", err)
 	}
 
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("error starting command: %s", err)
+		return fmt.Errorf("error starting command: %w", err)
 	}
 
 	log.Println("Running tests...")
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)
+
 	go readLinesFromPipe(stdout, &wg)
 	go readLinesFromPipe(stderr, &wg)
 	wg.Wait()
@@ -141,8 +147,10 @@ func RunPerfTests(cfg *Config) error {
 	execError := cmd.Wait()
 
 	if execError != nil {
-		exitError, ok := execError.(errorWithExitCode)
-		if ok && exitError.ExitCode() == THRESHOLDS_BREACHED_EXIT_CODE {
+		var exitError errorWithExitCode
+		ok := errors.As(execError, &exitError)
+
+		if ok && exitError.ExitCode() == thresholdsBreachedExitCode {
 			if cfg.FailOnThresholdBreach {
 				return fmt.Errorf("thresholds breached")
 			}
@@ -170,6 +178,7 @@ func readLinesFromPipe(pipe io.ReadCloser, wg *sync.WaitGroup) {
 	if wg != nil {
 		defer wg.Done()
 	}
+
 	scanner := bufio.NewScanner(pipe)
 	for scanner.Scan() {
 		log.Println(scanner.Text())
