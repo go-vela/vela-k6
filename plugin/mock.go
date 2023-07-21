@@ -1,3 +1,7 @@
+// Copyright (c) 2023 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package plugin
 
 import (
@@ -38,7 +42,7 @@ func (m *MockCommand) StderrPipe() (io.ReadCloser, error) {
 }
 
 // MockCommandBuilderWithError returns a function that will return a MockCommand
-// which will return the specified waitErr on cmd.Wait()
+// which will return the specified waitErr on cmd.Wait().
 func MockCommandBuilderWithError(waitErr error) func(string, ...string) shellCommand {
 	return func(name string, args ...string) shellCommand {
 		return &MockCommand{
