@@ -1,3 +1,7 @@
+// Copyright (c) 2023 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
 package plugin
 
 import (
@@ -34,7 +38,7 @@ func buildExecCommand(name string, args ...string) shellCommand {
 }
 
 // checkOSStat verifies a file exists at the given path, otherwise returns
-// an error
+// an error.
 func checkOSStat(path string) error {
 	_, err := os.Stat(path)
 	return err
@@ -42,16 +46,16 @@ func checkOSStat(path string) error {
 
 var (
 	validFilePattern = regexp.MustCompile(`^(\./|(\.\./)+)?[a-zA-Z0-9-_/]*[a-zA-Z0-9]\.(json|js)$`)
-	// buildCommand can be swapped out for a mock function for unit testing
+	// buildCommand can be swapped out for a mock function for unit testing.
 	buildCommand = buildExecCommand
-	// verifyFileExists can be swapped out for a mock function for unit testing
+	// verifyFileExists can be swapped out for a mock function for unit testing.
 	verifyFileExists = checkOSStat
 )
 
 // ConfigFromEnv returns a Config populated with the values of the Vela
 // parameters. Script and output paths will be sanitized/validated, and
 // an error is returned if the script path is empty or invalid. If the
-// output path is invalid, OutputPath is set to ""
+// output path is invalid, OutputPath is set to "".
 func ConfigFromEnv() (*Config, error) {
 	cfg := &Config{}
 	cfg.ScriptPath = sanitizeFilePath(os.Getenv("PARAMETER_SCRIPT_PATH"))
@@ -68,13 +72,13 @@ func ConfigFromEnv() (*Config, error) {
 }
 
 // sanitizeFilePath returns the input string if it satisfies the pattern
-// for a valid filepath, and an empty string otherwise
+// for a valid filepath, and an empty string otherwise.
 func sanitizeFilePath(input string) string {
 	return validFilePattern.FindString(input)
 }
 
 // buildK6Command returns a shellCommand that will execute K6 tests
-// using the script path, output path, and output type in cfg
+// using the script path, output path, and output type in cfg.
 func buildK6Command(cfg *Config) (cmd shellCommand, err error) {
 	commandArgs := []string{"run"}
 	if !cfg.LogProgress {
@@ -100,9 +104,8 @@ func buildK6Command(cfg *Config) (cmd shellCommand, err error) {
 
 // RunPerfTests runs the K6 performance test script located at the
 // cfg.ScriptPath and saves the output to cfg.OutputPath if it is present
-// and a valid filepath
+// and a valid filepath.
 func RunPerfTests(cfg *Config) error {
-
 	err := verifyFileExists(cfg.ScriptPath)
 	if err != nil {
 		return fmt.Errorf("Error reading script file at %s: %s", cfg.ScriptPath, err)
