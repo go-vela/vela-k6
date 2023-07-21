@@ -2,7 +2,7 @@
 
 [![license](https://img.shields.io/crates/l/gl.svg)](../LICENSE)
 [![GoDoc](https://godoc.org/github.com/go-vela/vela-k6?status.svg)](https://godoc.org/github.com/go-vela/vela-k6)
-[![Go Report Card](https://goreportcard.com/badge/go-vela/vela-k6)](https://goreportcard.com/report/go-vela/vela-k6)
+[![Go Report Card](https://goreportcard.com/badge/github.com/go-vela/vela-k6)](https://goreportcard.com/report/github.com/go-vela/vela-k6)
 [![codecov](https://codecov.io/gh/go-vela/vela-k6/branch/main/graph/badge.svg)](https://codecov.io/gh/go-vela/vela-k6)
 
 Performance testing plugin implementing [Grafana Labs® K6](https://k6.io/) for use within [Vela](https://go-vela.github.io/docs/) pipelines.
