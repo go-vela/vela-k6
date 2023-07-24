@@ -113,26 +113,26 @@ func buildK6Command(cfg *Config) (cmd shellCommand, err error) {
 func RunPerfTests(cfg *Config) error {
 	err := verifyFileExists(cfg.ScriptPath)
 	if err != nil {
-		return fmt.Errorf("error reading script file at %s: %w", cfg.ScriptPath, err)
+		return fmt.Errorf("read script file at %s: %w", cfg.ScriptPath, err)
 	}
 
 	cmd, err := buildK6Command(cfg)
 	if err != nil {
-		return fmt.Errorf("error creating output directory: %w", err)
+		return fmt.Errorf("create output directory: %w", err)
 	}
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return fmt.Errorf("error getting stdout pipe: %w", err)
+		return fmt.Errorf("get stdout pipe: %w", err)
 	}
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return fmt.Errorf("error getting stderr pipe: %w", err)
+		return fmt.Errorf("get stderr pipe: %w", err)
 	}
 
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("error starting command: %w", err)
+		return fmt.Errorf("start command: %w", err)
 	}
 
 	log.Println("Running tests...")
@@ -162,7 +162,7 @@ func RunPerfTests(cfg *Config) error {
 	if cfg.OutputPath != "" {
 		path, err := filepath.Abs(cfg.OutputPath)
 		if err != nil {
-			log.Printf("Error saving output to %s: %s\n", cfg.OutputPath, err)
+			log.Printf("save output to %s: %s\n", cfg.OutputPath, err)
 		} else {
 			log.Printf("Output file saved at %s\n", path)
 		}
