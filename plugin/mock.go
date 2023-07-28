@@ -24,6 +24,7 @@ func (m *MockCommand) String() (str string) {
 	for _, arg := range m.args {
 		str = fmt.Sprintf("%s %s", str, arg)
 	}
+
 	return
 }
 
@@ -53,7 +54,7 @@ type MockThresholdError struct {
 }
 
 func (m *MockThresholdError) ExitCode() int {
-	return THRESHOLDS_BREACHED_EXIT_CODE
+	return thresholdsBreachedExitCode
 }
 
 func (m *MockThresholdError) Error() string {

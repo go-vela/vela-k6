@@ -1,7 +1,6 @@
 BIN_NAME ?= vela-k6
 BIN_LOCATION ?= ./
 MAIN_LOCATION ?= .
-API_PORT ?= 8080
 
 # check if a git commit sha is already set
 ifndef GITHUB_SHA
@@ -63,7 +62,6 @@ clean-all:
 .PHONY: test-all
 test-all:	
 	@go test ./... -coverprofile=coverage.out
-
 
 .PHONY: go-tidy
 go-tidy:	

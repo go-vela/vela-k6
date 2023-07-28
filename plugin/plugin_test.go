@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -13,9 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setFilePathEnvs() {
-	os.Setenv("PARAMETER_SCRIPT_PATH", "./test/script.js")
-	os.Setenv("PARAMETER_OUTPUT_PATH", "./output.json")
+func setFilePathEnvs(t *testing.T) {
+	t.Setenv("PARAMETER_SCRIPT_PATH", "./test/script.js")
+	t.Setenv("PARAMETER_OUTPUT_PATH", "./output.json")
 }
 
 func TestSanitizeFilePath(t *testing.T) {
@@ -49,18 +48,17 @@ func TestSanitizeFilePath(t *testing.T) {
 
 func TestConfigFromEnv(t *testing.T) {
 	t.Run("Files Only", func(t *testing.T) {
-		setFilePathEnvs()
-		defer os.Clearenv()
+		setFilePathEnvs(t)
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
 		assert.Equal(t, "./test/script.js", cfg.ScriptPath)
 		assert.Equal(t, "./output.json", cfg.OutputPath)
 	})
 	t.Run("Non-Default Options", func(t *testing.T) {
-		setFilePathEnvs()
-		os.Setenv("PARAMETER_PROJEKTOR_COMPAT_MODE", "true")
-		os.Setenv("PARAMETER_FAIL_ON_THRESHOLD_BREACH", "false")
-		defer os.Clearenv()
+		setFilePathEnvs(t)
+		t.Setenv("PARAMETER_PROJEKTOR_COMPAT_MODE", "true")
+		t.Setenv("PARAMETER_FAIL_ON_THRESHOLD_BREACH", "false")
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
 		assert.Equal(t, "./test/script.js", cfg.ScriptPath)
@@ -69,8 +67,7 @@ func TestConfigFromEnv(t *testing.T) {
 		assert.False(t, cfg.FailOnThresholdBreach)
 	})
 	t.Run("Invalid Script Path", func(t *testing.T) {
-		os.Setenv("PARAMETER_SCRIPT_PATH", "./script.png")
-		defer os.Clearenv()
+		t.Setenv("PARAMETER_SCRIPT_PATH", "./script.png")
 		cfg, err := ConfigFromEnv()
 		assert.Error(t, err)
 		assert.Nil(t, cfg)
@@ -79,18 +76,16 @@ func TestConfigFromEnv(t *testing.T) {
 
 func TestBuildK6Command(t *testing.T) {
 	t.Run("No Output", func(t *testing.T) {
-		os.Setenv("PARAMETER_SCRIPT_PATH", "./test/script.js")
+		t.Setenv("PARAMETER_SCRIPT_PATH", "./test/script.js")
 		cfg, err := ConfigFromEnv()
-		defer os.Clearenv()
 		assert.NoError(t, err)
 		cmd, err := buildK6Command(cfg)
 		assert.NoError(t, err)
 		assert.Contains(t, cmd.String(), "k6 run -q ./test/script.js")
 	})
 	t.Run("Projektor Compat Output", func(t *testing.T) {
-		setFilePathEnvs()
-		os.Setenv("PARAMETER_PROJEKTOR_COMPAT_MODE", "true")
-		defer os.Clearenv()
+		setFilePathEnvs(t)
+		t.Setenv("PARAMETER_PROJEKTOR_COMPAT_MODE", "true")
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
 		cmd, err := buildK6Command(cfg)
@@ -98,8 +93,7 @@ func TestBuildK6Command(t *testing.T) {
 		assert.Contains(t, cmd.String(), "k6 run -q --summary-export=./output.json ./test/script.js")
 	})
 	t.Run("K6 Recommended Output", func(t *testing.T) {
-		setFilePathEnvs()
-		defer os.Clearenv()
+		setFilePathEnvs(t)
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
 		cmd, err := buildK6Command(cfg)
@@ -114,15 +108,16 @@ func TestRunPerfTests(t *testing.T) {
 		if path != "./test/script.js" {
 			return fmt.Errorf("File does not exist at path %s", path)
 		}
+
 		return nil
 	}
+
 	defer func() {
 		buildCommand = buildExecCommand
 		verifyFileExists = checkOSStat
 	}()
 	t.Run("Successful Perf Tests", func(t *testing.T) {
-		setFilePathEnvs()
-		defer os.Clearenv()
+		setFilePathEnvs(t)
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
 		err = RunPerfTests(cfg)
@@ -131,8 +126,7 @@ func TestRunPerfTests(t *testing.T) {
 
 	t.Run("Error if thresholds breached", func(t *testing.T) {
 		buildCommand = MockCommandBuilderWithError(&MockThresholdError{})
-		setFilePathEnvs()
-		defer os.Clearenv()
+		setFilePathEnvs(t)
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
 		err = RunPerfTests(cfg)
@@ -141,9 +135,8 @@ func TestRunPerfTests(t *testing.T) {
 
 	t.Run("No error if thresholds breached", func(t *testing.T) {
 		buildCommand = MockCommandBuilderWithError(&MockThresholdError{})
-		setFilePathEnvs()
-		os.Setenv("PARAMETER_FAIL_ON_THRESHOLD_BREACH", "false")
-		defer os.Clearenv()
+		setFilePathEnvs(t)
+		t.Setenv("PARAMETER_FAIL_ON_THRESHOLD_BREACH", "false")
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
 		err = RunPerfTests(cfg)
@@ -154,9 +147,10 @@ func TestRunPerfTests(t *testing.T) {
 func TestReadLinesFromPipe(t *testing.T) {
 	t.Run("Reads from pipe and closes", func(t *testing.T) {
 		var buf bytes.Buffer
+		prevOut := log.Writer()
 		log.SetOutput(&buf)
 		defer func() {
-			log.SetOutput(os.Stderr)
+			log.SetOutput(prevOut)
 		}()
 		line1 := "this is line 1"
 		line2 := "this is line 2"
