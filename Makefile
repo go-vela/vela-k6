@@ -93,5 +93,4 @@ endif
 build-all:
 	@echo
 	@echo "### Building release/vela-k6 binary"
-	@${GO_ENVS} CGO_ENABLED=0 go build -a -ldflags '${LD_FLAGS}' -o $(BIN_LOCATION) $(BIN_NAME)
-	@echo finished building
+	${GO_ENVS} CGO_ENABLED=0 go build -a -ldflags '${LD_FLAGS}' -o $(BIN_LOCATION) $(BIN_NAME)
