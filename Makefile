@@ -1,6 +1,9 @@
-BIN_NAME ?= vela-k6
-BIN_LOCATION ?= ./
+BIN_LOCATION ?= release/vela-k6
+BIN_NAME ?= github.com/go-vela/vela-k6
 MAIN_LOCATION ?= .
+
+# capture the current date we build the application from
+BUILD_DATE = $(shell date +%Y-%m-%dT%H:%M:%SZ)
 
 # check if a git commit sha is already set
 ifndef GITHUB_SHA
@@ -19,6 +22,15 @@ ifndef GOLANG_VERSION
 	# capture the current go version we build the application from
 	GOLANG_VERSION = $(shell go version | awk '{ print $$3 }')
 endif
+
+ifeq ($(shell uname -s), Darwin)
+	GO_ENVS = GOOS=darwin
+else
+	GO_ENVS = GOOS=linux GOARCH=amd64
+endif
+
+# create a list of linker flags for building the golang application
+LD_FLAGS = -X github.com/go-vela/vela-k6/version.Commit=${GITHUB_SHA} -X github.com/go-vela/vela-k6/version.Date=${BUILD_DATE} -X github.com/go-vela/vela-k6/version.Go=${GOLANG_VERSION} -X github.com/go-vela/vela-k6/version.Tag=${GITHUB_TAG}
 
 .PHONY: deps
 deps: go-tidy golangci-lint ## Install golang dependencies for the application
@@ -78,12 +90,8 @@ endif
 	@echo finished running golangci-lint
 
 .PHONY: build-all
-build-all:	
-ifeq ($(shell uname -s), Darwin)
-	GOOS=darwin
-endif
-	CGO_ENABLED=0
-	GOOS=linux
-	GOARCH=amd64
-	@go build -a -ldflags '-extldflags "-static"' -o $(BIN_NAME) $(BIN_LOCATION)
-	@echo finished building golangci-lint
+build-all:
+	@echo
+	@echo "### Building release/vela-k6 binary"
+	@${GO_ENVS} CGO_ENABLED=0 go build -a -ldflags '${LD_FLAGS}' -o $(BIN_LOCATION) $(BIN_NAME)
+	@echo finished building

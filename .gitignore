@@ -10,4 +10,4 @@ unit-tests.xml
 .env
 
 # binary
-vela-k6
+release/
