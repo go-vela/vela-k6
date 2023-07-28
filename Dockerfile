@@ -1,7 +1,3 @@
-# Copyright (c) 2023 Target Brands, Inc. All rights reserved.
-#
-# Use of this source code is governed by the LICENSE file in this repository.
-
 FROM docker.io/grafana/k6:latest as k6-image
 
 FROM alpine as certs

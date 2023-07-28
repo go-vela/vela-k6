@@ -1,11 +1,25 @@
-# Copyright (c) 2023 Target Brands, Inc. All rights reserved.
-#
-# Use of this source code is governed by the LICENSE file in this repository.
-
 BIN_NAME ?= vela-k6
 BIN_LOCATION ?= ./
 MAIN_LOCATION ?= .
 API_PORT ?= 8080
+
+# check if a git commit sha is already set
+ifndef GITHUB_SHA
+	# capture the current git commit sha we build the application from
+	GITHUB_SHA = $(shell git rev-parse HEAD)
+endif
+
+# check if a git tag is already set
+ifndef GITHUB_TAG
+	# capture the current git tag we build the application from
+	GITHUB_TAG = $(shell git describe --tag --abbrev=0)
+endif
+
+# check if a go version is already set
+ifndef GOLANG_VERSION
+	# capture the current go version we build the application from
+	GOLANG_VERSION = $(shell go version | awk '{ print $$3 }')
+endif
 
 .PHONY: deps
 deps: go-tidy golangci-lint ## Install golang dependencies for the application
