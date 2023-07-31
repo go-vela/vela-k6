@@ -42,14 +42,13 @@ Example using `projektor_compat_mode` parameter, which generates output with the
   commands:
     - npm install -g projektor-publish
     - npx projektor-publish --serverUrl=https://my-projektor-server.dev --performance="./test-results.json"
-
 ```
 
 > **NOTE:**
 >
 > Projektor will not accept performance test results unless the below stats are included
 
-For your results to be accepted by Projektor, your k6 script's `options.summaryTrendStats` MUST include the following:
+For your results to be accepted by your Projektor server, the k6 script's `options.summaryTrendStats` MUST include the following:
 
 ```js
 export const options = {
@@ -73,5 +72,5 @@ The following parameters are used to configure the image:
 | `script_path`              | path to the k6 script file. must be a JavaScript file satisfying the pattern `^([.]{0,2}/)?[a-zA-Z0-9-_/]\*[a-zA-Z0-9]\.js$`.                                                                                                     | `true`   | `N/A`   |
 | `output_path`              | path to the output file that will be created. directories will be created as necessary. if empty, no output file will be generated. must be a JSON file satisfying the pattern `^([.]{0,2}/)?[a-zA-Z0-9-_/]\*[a-zA-Z0-9]\.json$`. | `false`  | `N/A`   |
 | `fail_on_threshold_breach` | if `false`, the pipeline step will not fail even if thresholds are breached.                                                                                                                                                      | `false`  | `true`  |
-| `projektor_compat_mode`    | if `true`, output will be generated with the `--summary-output` flag instead of the `--out` flag. this is necessary for results uploaded to [Projektor](https://projektor.dev/).                                                  | `false`  | `false` |
+| `projektor_compat_mode`    | if `true`, output will be generated with the `--summary-output` flag instead of the `--out` flag. this is necessary for results uploaded to a [Projektor](https://projektor.dev/) server.                                         | `false`  | `false` |
 | `log_progress`             | if `true`, k6 progress bar output will print to the Vela pipeline. Not recommended for numerous or long-running tests, as logging becomes excessive.                                                                              | `false`  | `false` |
