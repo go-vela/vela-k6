@@ -3,7 +3,7 @@ module github.com/go-vela/vela-k6
 go 1.20
 
 require (
-	github.com/Masterminds/semver/v3 v3.1.1
+	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/go-vela/types v0.14.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.8.3
