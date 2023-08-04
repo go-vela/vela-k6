@@ -51,6 +51,9 @@ build-docker:  ## Compile the application for testing locally with Docker
 .PHONY: test
 test: test-all  ## Run all unit tests
 
+.PHONY: coverage
+coverage: test-all coverage-all ## Run tests and coverage visualization (only for local dev)
+
 .PHONY: help
 help: ## Show all valid options
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
@@ -75,6 +78,10 @@ clean-all:
 test-all:	
 	@go test ./... -coverprofile=coverage.out
 
+.PHONY: coverage-all
+coverage-all:	
+	@go tool cover -html=coverage.out
+
 .PHONY: go-tidy
 go-tidy:	
 	@go mod tidy
@@ -89,8 +96,23 @@ endif
 	@golangci-lint run ./...
 	@echo finished running golangci-lint
 
+# The `build-all` target is intended to compile
+# the Go source code into a binary.
+#
+# Usage: `make build`
 .PHONY: build-all
 build-all:
 	@echo
 	@echo "### Building release/vela-k6 binary"
 	${GO_ENVS} CGO_ENABLED=0 go build -a -ldflags '${LD_FLAGS}' -o $(BIN_LOCATION) $(BIN_NAME)
+
+# The `build-static-ci` target is intended to compile
+# the Go source code into a statically linked binary
+# when used within a CI environment.
+#
+# Usage: `make build-static-ci`
+.PHONY: build-static-ci
+build-static-ci:
+	@echo
+	@echo "### Building CI static release/vela-k6 binary"
+	go build -a -ldflags '-s -w -extldflags "-static" ${LD_FLAGS}' -o $(BIN_LOCATION) $(BIN_NAME)
