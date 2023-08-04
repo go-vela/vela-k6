@@ -1,7 +1,3 @@
-// Copyright (c) 2023 Target Brands, Inc. All rights reserved.
-//
-// Use of this source code is governed by the LICENSE file in this repository.
-
 package plugin
 
 import (
@@ -19,6 +15,14 @@ import (
 func setFilePathEnvs(t *testing.T) {
 	t.Setenv("PARAMETER_SCRIPT_PATH", "./test/script.js")
 	t.Setenv("PARAMETER_OUTPUT_PATH", "./output.json")
+}
+
+func clearEnvironment(t *testing.T) {
+	t.Setenv("PARAMETER_SCRIPT_PATH", "")
+	t.Setenv("PARAMETER_OUTPUT_PATH", "")
+	t.Setenv("PARAMETER_PROJEKTOR_COMPAT_MODE", "")
+	t.Setenv("PARAMETER_FAIL_ON_THRESHOLD_BREACH", "")
+	t.Setenv("PARAMETER_LOG_PROGRESS", "")
 }
 
 func TestSanitizeFilePath(t *testing.T) {
@@ -51,6 +55,7 @@ func TestSanitizeFilePath(t *testing.T) {
 }
 
 func TestConfigFromEnv(t *testing.T) {
+	clearEnvironment(t)
 	t.Run("Files Only", func(t *testing.T) {
 		setFilePathEnvs(t)
 		cfg, err := ConfigFromEnv()
@@ -79,6 +84,7 @@ func TestConfigFromEnv(t *testing.T) {
 }
 
 func TestBuildK6Command(t *testing.T) {
+	clearEnvironment(t)
 	t.Run("No Output", func(t *testing.T) {
 		t.Setenv("PARAMETER_SCRIPT_PATH", "./test/script.js")
 		cfg, err := ConfigFromEnv()
@@ -104,9 +110,20 @@ func TestBuildK6Command(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Contains(t, cmd.String(), "k6 run -q --out json=./output.json ./test/script.js")
 	})
+	t.Run("Verbose logging", func(t *testing.T) {
+		t.Setenv("PARAMETER_SCRIPT_PATH", "./test/script.js")
+		t.Setenv("PARAMETER_LOG_PROGRESS", "true")
+		cfg, err := ConfigFromEnv()
+		assert.NoError(t, err)
+		cmd, err := buildK6Command(cfg)
+		assert.NoError(t, err)
+		assert.Contains(t, cmd.String(), "k6 run ./test/script.js")
+	})
 }
 
 func TestRunPerfTests(t *testing.T) {
+	clearEnvironment(t)
+
 	buildCommand = MockCommandBuilderWithError(nil)
 	verifyFileExists = func(path string) error {
 		if path != "./test/script.js" {

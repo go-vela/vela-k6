@@ -1,0 +1,48 @@
+# name of the action
+name: reviewdog
+
+# trigger on pull_request events
+on:
+  pull_request:
+
+# pipeline to execute
+jobs:
+  diff-review:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: clone
+      uses: actions/checkout@v3
+
+    - name: install go
+      uses: actions/setup-go@v4
+      with:
+        # use version from go.mod file
+        go-version-file: 'go.mod'
+        cache: true
+        check-latest: true
+
+    - name: golangci-lint
+      uses: reviewdog/action-golangci-lint@v2
+      with:
+        github_token: ${{ secrets.github_token }}
+        golangci_lint_flags: "--config=.golangci.yml"
+        fail_on_error: true
+        filter_mode: diff_context
+        reporter: github-pr-review
+
+  full-review:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.20
+    steps:
+    - name: clone
+      uses: actions/checkout@v3
+
+    - name: golangci-lint
+      uses: reviewdog/action-golangci-lint@v2
+      with:
+        github_token: ${{ secrets.github_token }}
+        golangci_lint_flags: "--config=.golangci.yml"
+        fail_on_error: false
+        filter_mode: nofilter

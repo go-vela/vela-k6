@@ -1,0 +1,36 @@
+# name of the action
+name: labeler
+
+# trigger when pull request is opened or when a draft is marked ready to review
+on:
+  pull_request:
+    types: ['opened', 'ready_for_review', 'reopened', 'synchronize']
+
+# pipeline to execute
+jobs:
+  labeler:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: labeler
+        uses: codelytv/pr-size-labeler@d269449310fe33526c56b2dfe6244e3a9f489b15
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          xs_label: 'size/xs'
+          xs_max_size: '15'
+          s_label: 'size/s'
+          s_max_size: '100'
+          m_label: 'size/m'
+          m_max_size: '250'
+          l_label: 'size/l'
+          l_max_size: '500'
+          xl_label: 'size/xl'
+          fail_if_xl: 'false'
+          message_if_xl: >
+            This PR exceeds the recommended size of 500 lines.
+            Please make sure you are NOT addressing multiple issues with one PR.
+            Note this PR might be rejected due to its size.
+          files_to_ignore: |
+            "go.mod"
+            "go.sum"

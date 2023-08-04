@@ -1,16 +1,29 @@
-// Copyright (c) 2023 Target Brands, Inc. All rights reserved.
-//
-// Use of this source code is governed by the LICENSE file in this repository.
-
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/go-vela/vela-k6/plugin"
+	"github.com/go-vela/vela-k6/version"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
+	// capture application version information
+	v := version.New()
+
+	// serialize the version information as pretty JSON
+	bytes, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	// output the version information to stdout
+	fmt.Fprintf(os.Stdout, "%s\n", string(bytes))
+
 	cfg, err := plugin.ConfigFromEnv()
 	if err != nil {
 		log.Fatalf("FATAL: %s\n", err)
