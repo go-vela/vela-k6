@@ -36,17 +36,28 @@ func New() *version.Version {
 		Tag = "v0.0.0"
 	}
 
+	var major, minor, patch uint64
+
+	var prerelease string
+
 	v, err := semver.NewVersion(Tag)
 	if err != nil {
 		fmt.Println(fmt.Errorf("unable to parse semantic version for %s: %w", Tag, err))
 	}
 
+	if v != nil {
+		major = v.Major()
+		minor = v.Minor()
+		patch = v.Patch()
+		prerelease = v.Prerelease()
+	}
+
 	return &version.Version{
 		Canonical:  Tag,
-		Major:      v.Major(),
-		Minor:      v.Minor(),
-		Patch:      v.Patch(),
-		PreRelease: v.Prerelease(),
+		Major:      major,
+		Minor:      minor,
+		Patch:      patch,
+		PreRelease: prerelease,
 		Metadata: version.Metadata{
 			Architecture:    Arch,
 			BuildDate:       Date,
