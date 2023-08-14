@@ -1,6 +1,6 @@
-FROM docker.io/grafana/k6:latest as k6-image
+FROM docker.io/grafana/k6:0.45.0 as k6-image
 
-FROM alpine as certs
+FROM alpine:3.18 as certs
 
 RUN apk add --update --no-cache ca-certificates
 
