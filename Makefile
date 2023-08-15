@@ -44,9 +44,8 @@ clean: clean-all go-tidy ## Clean up the application and test output
 .PHONY: build
 build: build-all  ## Compile the application
 
-.PHONY: build-docker
-build-docker:  ## Compile the application for testing locally with Docker
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $(BIN_NAME)
+.PHONY: docker
+docker: build-linux docker-build  ## Build a Docker image for local testing
 
 .PHONY: test
 test: test-all  ## Run all unit tests
@@ -116,3 +115,23 @@ build-static-ci:
 	@echo
 	@echo "### Building CI static release/vela-k6 binary"
 	go build -a -ldflags '-s -w -extldflags "-static" ${LD_FLAGS}' -o $(BIN_LOCATION) $(BIN_NAME)
+
+# The `build-linux` target is intended to compile
+# the Go source code into a linux-compatible binary.
+#
+# Usage: `make build-linux`
+.PHONY: build-linux
+build-linux:
+	@echo
+	@echo "### Building release/vela-k6 binary for linux"
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -a -ldflags '${LD_FLAGS}' -o $(BIN_LOCATION) $(BIN_NAME)
+
+# The `docker-build` target is intended to build
+# the Docker image for the plugin.
+#
+# Usage: `make docker-build`
+.PHONY: docker-build
+docker-build: build-linux
+	@echo
+	@echo "### Building vela-k6:local image"
+	@docker build --no-cache -t vela-k6:local .
