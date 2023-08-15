@@ -65,7 +65,7 @@ func ConfigFromEnv() (*Config, error) {
 	cfg.LogProgress = strings.EqualFold(os.Getenv("PARAMETER_LOG_PROGRESS"), "true")
 
 	if cfg.ScriptPath == "" || !strings.HasSuffix(cfg.ScriptPath, ".js") {
-		return nil, fmt.Errorf("invalid script file. provide the filepath to a JavaScript file in plugin parameter 'script_path' (e.g. 'script_path: \"/k6-test/script.js\"'). the filepath must follow the regular expression `^[a-zA-Z0-9-_/]*[a-zA-Z0-9]+\\.(json|js)$`")
+		return nil, fmt.Errorf("invalid script file. provide the filepath to a JavaScript file in plugin parameter 'script_path' (e.g. 'script_path: \"/k6-test/script.js\"'). the filepath must follow the regular expression `%s`", validJSFilePattern)
 	}
 
 	return cfg, nil
