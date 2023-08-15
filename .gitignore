@@ -11,3 +11,6 @@ unit-tests.xml
 
 # binary
 release/
+
+# MacOS
+.DS_STORE 

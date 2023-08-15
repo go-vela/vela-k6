@@ -29,6 +29,11 @@ func main() {
 		log.Fatalf("FATAL: %s\n", err)
 	}
 
+	err = plugin.RunSetupScript(cfg)
+	if err != nil {
+		log.Fatalf("FATAL: %s\n", err)
+	}
+
 	err = plugin.RunPerfTests(cfg)
 	if err != nil {
 		log.Fatalf("FATAL: %s\n", err)
