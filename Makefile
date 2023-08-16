@@ -36,7 +36,7 @@ LD_FLAGS = -X github.com/go-vela/vela-k6/version.Commit=${GITHUB_SHA} -X github.
 deps: go-tidy golangci-lint ## Install golang dependencies for the application
 
 .PHONY: check
-check: go-tidy check-all golangci-lint  ## Run all lint checks
+check: go-tidy check-all lint-all  ## Run all lint checks
 
 .PHONY: clean
 clean: clean-all go-tidy ## Clean up the application and test output
@@ -66,6 +66,9 @@ check-all:
 	@go vet ./...
 	@go fmt ./...
 
+.PHONY: lint-all
+lint-all: golangci-lint mdl
+
 .PHONY: clean-all
 clean-all:
 	@rm -f perf-test.json
@@ -94,6 +97,16 @@ endif
 endif
 	@golangci-lint run ./...
 	@echo finished running golangci-lint
+
+.PHONY: mdl
+mdl:
+ifeq ($(strip $(shell which mdl)),)
+ifneq ($(strip $(shell which gem)),)
+	@gem install mdl
+endif
+endif
+	@mdl -g --rules ~MD007,~MD013 .
+	@echo finished running mdl
 
 # The `build-all` target is intended to compile
 # the Go source code into a binary.
