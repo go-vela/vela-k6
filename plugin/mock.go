@@ -1,7 +1,6 @@
 package plugin
 
 import (
-	"fmt"
 	"io"
 	"os/exec"
 	"strings"
@@ -21,11 +20,7 @@ func (m *MockCommand) Wait() error {
 }
 
 func (m *MockCommand) String() (str string) {
-	for _, arg := range m.args {
-		str = fmt.Sprintf("%s %s", str, arg)
-	}
-
-	return
+	return ""
 }
 
 func (m *MockCommand) StdoutPipe() (io.ReadCloser, error) {
