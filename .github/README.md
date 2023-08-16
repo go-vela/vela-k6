@@ -25,7 +25,7 @@ Please see our [support](SUPPORT.md) documentation for further instructions.
 
 ## Copyright and License
 
-```
+```text
 Copyright (c) 2023 Target Brands, Inc.
 ```
 
