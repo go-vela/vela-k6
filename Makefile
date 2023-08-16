@@ -67,7 +67,7 @@ check-all:
 	@go fmt ./...
 
 .PHONY: lint-all
-lint-all: golangci-lint mdl
+lint-all: golangci-lint mdl yamllint
 
 .PHONY: clean-all
 clean-all:
@@ -97,6 +97,16 @@ endif
 endif
 	@golangci-lint run ./...
 	@echo finished running golangci-lint
+
+.PHONY: yamllint
+yamllint:
+ifeq ($(strip $(shell which yamllint)),)
+ifneq ($(strip $(shell which pip)),)
+	@pip install yamllint
+endif
+endif
+	@yamllint -f colored -c .yamllint.yml .
+	@echo finished running yamllint
 
 .PHONY: mdl
 mdl:
