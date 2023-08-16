@@ -9,6 +9,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/go-vela/vela-k6/plugin/mock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -178,7 +179,7 @@ func TestBuildK6Command(t *testing.T) {
 func TestRunSetupScript(t *testing.T) {
 	clearEnvironment(t)
 
-	buildCommand = MockCommandBuilderWithError(nil)
+	buildCommand = mock.CommandBuilderWithError(nil)
 	verifyFileExists = func(path string) error {
 		if path != "./test/setup.sh" {
 			return fmt.Errorf("File does not exist at path %s", path)
@@ -219,7 +220,7 @@ func TestRunSetupScript(t *testing.T) {
 	})
 
 	t.Run("Setup script exec error", func(t *testing.T) {
-		buildCommand = MockCommandBuilderWithError(fmt.Errorf("some setup error"))
+		buildCommand = mock.CommandBuilderWithError(fmt.Errorf("some setup error"))
 		setFilePathEnvs(t)
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
@@ -231,7 +232,7 @@ func TestRunSetupScript(t *testing.T) {
 func TestRunPerfTests(t *testing.T) {
 	clearEnvironment(t)
 
-	buildCommand = MockCommandBuilderWithError(nil)
+	buildCommand = mock.CommandBuilderWithError(nil)
 	verifyFileExists = func(path string) error {
 		if path != "./test/script.js" {
 			return fmt.Errorf("File does not exist at path %s", path)
@@ -262,7 +263,7 @@ func TestRunPerfTests(t *testing.T) {
 	})
 
 	t.Run("Error if thresholds breached", func(t *testing.T) {
-		buildCommand = MockCommandBuilderWithError(&MockThresholdError{})
+		buildCommand = mock.CommandBuilderWithError(&mock.ThresholdError{})
 		setFilePathEnvs(t)
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
@@ -271,7 +272,7 @@ func TestRunPerfTests(t *testing.T) {
 	})
 
 	t.Run("No error if thresholds breached", func(t *testing.T) {
-		buildCommand = MockCommandBuilderWithError(&MockThresholdError{})
+		buildCommand = mock.CommandBuilderWithError(&mock.ThresholdError{})
 		setFilePathEnvs(t)
 		t.Setenv("PARAMETER_FAIL_ON_THRESHOLD_BREACH", "false")
 		cfg, err := ConfigFromEnv()
@@ -281,7 +282,7 @@ func TestRunPerfTests(t *testing.T) {
 	})
 
 	t.Run("Other exec error", func(t *testing.T) {
-		buildCommand = MockCommandBuilderWithError(fmt.Errorf("some exec error"))
+		buildCommand = mock.CommandBuilderWithError(fmt.Errorf("some exec error"))
 		setFilePathEnvs(t)
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)

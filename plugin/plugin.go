@@ -12,25 +12,15 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+
+	"github.com/go-vela/vela-k6/types"
 )
 
 const thresholdsBreachedExitCode = 99
 
-type shellCommand interface {
-	Start() error
-	Wait() error
-	StdoutPipe() (io.ReadCloser, error)
-	StderrPipe() (io.ReadCloser, error)
-	String() string
-}
-
-type errorWithExitCode interface {
-	ExitCode() int
-}
-
-// buildExecCommand returns a shellCommand with the given arguments. The
-// return type of shellCommand is for mocking purposes.
-func buildExecCommand(name string, args ...string) shellCommand {
+// buildExecCommand returns a ShellCommand with the given arguments. The
+// return type of ShellCommand is for mocking purposes.
+func buildExecCommand(name string, args ...string) types.ShellCommand {
 	return exec.Command(name, args...)
 }
 
@@ -89,9 +79,9 @@ func sanitizeSetupPath(input string) string {
 	return validShellFilePattern.FindString(input)
 }
 
-// buildK6Command returns a shellCommand that will execute K6 tests
+// buildK6Command returns a ShellCommand that will execute K6 tests
 // using the script path, output path, and output type in cfg.
-func buildK6Command(cfg *Config) (cmd shellCommand, err error) {
+func buildK6Command(cfg *Config) (cmd types.ShellCommand, err error) {
 	commandArgs := []string{"run"}
 	if !cfg.LogProgress {
 		commandArgs = append(commandArgs, "-q")
@@ -204,7 +194,7 @@ func RunPerfTests(cfg *Config) error {
 	execError := cmd.Wait()
 
 	if execError != nil {
-		var exitError errorWithExitCode
+		var exitError types.ErrorWithExitCode
 		ok := errors.As(execError, &exitError)
 
 		if ok && exitError.ExitCode() == thresholdsBreachedExitCode {
