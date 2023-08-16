@@ -34,7 +34,7 @@ jobs:
   full-review:
     runs-on: ubuntu-latest
     container:
-      image: golang:1.21@sha256:ec457a2fcd235259273428a24e09900c496d0c52207266f96a330062a01e3622
+      image: golang:1.21@sha256:2c2a2a1250bee062627a39cc78a4fc96cb84fe0c0f55f2d83249c70e1edbcd42
     steps:
     - name: clone
       uses: actions/checkout@v3
