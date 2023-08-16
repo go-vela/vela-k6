@@ -73,6 +73,7 @@ cd $HOME/go-vela/vela-k6
 
 - Run the repository code (ensures your changes perform as you desire):
   - Ensure the appropriate environment variables are set (`PARAMETER_SCRIPT_PATH`, optionally `PARAMETER_OUTPUT_PATH`, `PARAMETER_PROJEKTOR_COMPAT_MODE`, and `PARAMETER_FAIL_ON_THRESHOLD_BREACH`)
+
 ```bash
 # execute the `start` target with `make`
 make start
