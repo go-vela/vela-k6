@@ -42,7 +42,9 @@ func checkOSStat(path string) error {
 }
 
 var (
-	validFilePattern = regexp.MustCompile(`^(\./|(\.\./)+)?[a-zA-Z0-9-_/]*[a-zA-Z0-9]\.(json|js)$`)
+	validJSFilePattern    = regexp.MustCompile(`^(\./|(\.\./)+)?[a-zA-Z0-9-_/]*[a-zA-Z0-9]\.js$`)
+	validJSONFilePattern  = regexp.MustCompile(`^(\./|(\.\./)+)?[a-zA-Z0-9-_/]*[a-zA-Z0-9]\.json$`)
+	validShellFilePattern = regexp.MustCompile(`^(\./|(\.\./)+)?[a-zA-Z0-9-_/]*[a-zA-Z0-9]\.sh$`)
 	// buildCommand can be swapped out for a mock function for unit testing.
 	buildCommand = buildExecCommand
 	// verifyFileExists can be swapped out for a mock function for unit testing.
@@ -55,23 +57,36 @@ var (
 // output path is invalid, OutputPath is set to "".
 func ConfigFromEnv() (*Config, error) {
 	cfg := &Config{}
-	cfg.ScriptPath = sanitizeFilePath(os.Getenv("PARAMETER_SCRIPT_PATH"))
-	cfg.OutputPath = sanitizeFilePath(os.Getenv("PARAMETER_OUTPUT_PATH"))
+	cfg.ScriptPath = sanitizeScriptPath(os.Getenv("PARAMETER_SCRIPT_PATH"))
+	cfg.OutputPath = sanitizeOutputPath(os.Getenv("PARAMETER_OUTPUT_PATH"))
+	cfg.SetupScriptPath = sanitizeSetupPath(os.Getenv("PARAMETER_SETUP_SCRIPT_PATH"))
 	cfg.FailOnThresholdBreach = !strings.EqualFold(os.Getenv("PARAMETER_FAIL_ON_THRESHOLD_BREACH"), "false")
 	cfg.ProjektorCompatMode = strings.EqualFold(os.Getenv("PARAMETER_PROJEKTOR_COMPAT_MODE"), "true")
 	cfg.LogProgress = strings.EqualFold(os.Getenv("PARAMETER_LOG_PROGRESS"), "true")
 
 	if cfg.ScriptPath == "" || !strings.HasSuffix(cfg.ScriptPath, ".js") {
-		return nil, fmt.Errorf("invalid script file. provide the filepath to a JavaScript file in plugin parameter 'script_path' (e.g. 'script_path: \"/k6-test/script.js\"'). the filepath must follow the regular expression `^[a-zA-Z0-9-_/]*[a-zA-Z0-9]+\\.(json|js)$`")
+		return nil, fmt.Errorf("invalid script file. provide the filepath to a JavaScript file in plugin parameter 'script_path' (e.g. 'script_path: \"/k6-test/script.js\"'). the filepath must follow the regular expression `%s`", validJSFilePattern)
 	}
 
 	return cfg, nil
 }
 
-// sanitizeFilePath returns the input string if it satisfies the pattern
-// for a valid filepath, and an empty string otherwise.
-func sanitizeFilePath(input string) string {
-	return validFilePattern.FindString(input)
+// sanitizeScriptPath returns the input string if it satisfies the pattern
+// for a valid JS filepath, and an empty string otherwise.
+func sanitizeScriptPath(input string) string {
+	return validJSFilePattern.FindString(input)
+}
+
+// sanitizeOutputPath returns the input string if it satisfies the pattern
+// for a valid JSON filepath, and an empty string otherwise.
+func sanitizeOutputPath(input string) string {
+	return validJSONFilePattern.FindString(input)
+}
+
+// sanitizeSetupPath returns the input string if it satisfies the pattern
+// for a valid .sh filepath, and an empty string otherwise.
+func sanitizeSetupPath(input string) string {
+	return validShellFilePattern.FindString(input)
 }
 
 // buildK6Command returns a shellCommand that will execute K6 tests
@@ -101,6 +116,52 @@ func buildK6Command(cfg *Config) (cmd shellCommand, err error) {
 	cmd = buildCommand("k6", commandArgs...)
 
 	return
+}
+
+// RunSetupScript runs the setup script located at the cfg.SetupScriptPath
+// if the path is not empty.
+func RunSetupScript(cfg *Config) error {
+	if cfg.SetupScriptPath == "" {
+		log.Println("No setup script specified, skipping.")
+		return nil
+	}
+
+	err := verifyFileExists(cfg.SetupScriptPath)
+	if err != nil {
+		return fmt.Errorf("read setup script file at %s: %w", cfg.SetupScriptPath, err)
+	}
+
+	cmd := buildCommand(cfg.SetupScriptPath)
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return fmt.Errorf("get stdout pipe: %w", err)
+	}
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return fmt.Errorf("get stderr pipe: %w", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("start command: %w", err)
+	}
+
+	log.Println("Running setup script...")
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	go readLinesFromPipe(stdout, &wg)
+	go readLinesFromPipe(stderr, &wg)
+	wg.Wait()
+
+	err = cmd.Wait()
+	if err != nil {
+		return fmt.Errorf("run setup script: %w", err)
+	}
+
+	return nil
 }
 
 // RunPerfTests runs the K6 performance test script located at the
@@ -184,6 +245,7 @@ func readLinesFromPipe(pipe io.ReadCloser, wg *sync.WaitGroup) {
 type Config struct {
 	ScriptPath            string
 	OutputPath            string
+	SetupScriptPath       string
 	FailOnThresholdBreach bool
 	ProjektorCompatMode   bool
 	LogProgress           bool

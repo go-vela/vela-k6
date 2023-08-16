@@ -15,42 +15,96 @@ import (
 func setFilePathEnvs(t *testing.T) {
 	t.Setenv("PARAMETER_SCRIPT_PATH", "./test/script.js")
 	t.Setenv("PARAMETER_OUTPUT_PATH", "./output.json")
+	t.Setenv("PARAMETER_SETUP_SCRIPT_PATH", "./test/setup.sh")
 }
 
 func clearEnvironment(t *testing.T) {
 	t.Setenv("PARAMETER_SCRIPT_PATH", "")
 	t.Setenv("PARAMETER_OUTPUT_PATH", "")
+	t.Setenv("PARAMETER_SETUP_SCRIPT_PATH", "")
 	t.Setenv("PARAMETER_PROJEKTOR_COMPAT_MODE", "")
 	t.Setenv("PARAMETER_FAIL_ON_THRESHOLD_BREACH", "")
 	t.Setenv("PARAMETER_LOG_PROGRESS", "")
 }
 
-func TestSanitizeFilePath(t *testing.T) {
+func TestSanitizeScriptPath(t *testing.T) {
 	t.Run("Valid Filepaths", func(t *testing.T) {
-		assert.Equal(t, "file.js", sanitizeFilePath("file.js"))
-		assert.Equal(t, "./file.js", sanitizeFilePath("./file.js"))
-		assert.Equal(t, "../file.js", sanitizeFilePath("../file.js"))
-		assert.Equal(t, "../../../file.js", sanitizeFilePath("../../../file.js"))
-		assert.Equal(t, "file.json", sanitizeFilePath("file.json"))
-		assert.Equal(t, "file-dash_underscore.json", sanitizeFilePath("file-dash_underscore.json"))
-		assert.Equal(t, "path/to/file.js", sanitizeFilePath("path/to/file.js"))
-		assert.Equal(t, "/path/to/file.js", sanitizeFilePath("/path/to/file.js"))
-		assert.Equal(t, "path/to/file.json", sanitizeFilePath("path/to/file.json"))
+		assert.Equal(t, "file.js", sanitizeScriptPath("file.js"))
+		assert.Equal(t, "./file.js", sanitizeScriptPath("./file.js"))
+		assert.Equal(t, "../file.js", sanitizeScriptPath("../file.js"))
+		assert.Equal(t, "../../../file.js", sanitizeScriptPath("../../../file.js"))
+		assert.Equal(t, "file-dash_underscore.js", sanitizeScriptPath("file-dash_underscore.js"))
+		assert.Equal(t, "path/to/file.js", sanitizeScriptPath("path/to/file.js"))
+		assert.Equal(t, "/path/to/file.js", sanitizeScriptPath("/path/to/file.js"))
 	})
 
 	t.Run("Invalid Filepaths", func(t *testing.T) {
-		assert.Equal(t, "", sanitizeFilePath(".../file.js"))
-		assert.Equal(t, "", sanitizeFilePath("./../file.js"))
-		assert.Equal(t, "", sanitizeFilePath("*/file.js"))
-		assert.Equal(t, "", sanitizeFilePath(".file.js"))
-		assert.Equal(t, "", sanitizeFilePath("/.json"))
-		assert.Equal(t, "", sanitizeFilePath("-.json"))
-		assert.Equal(t, "", sanitizeFilePath("_.json"))
-		assert.Equal(t, "", sanitizeFilePath("_invalid$name.json"))
-		assert.Equal(t, "", sanitizeFilePath("invalid$name.js"))
-		assert.Equal(t, "", sanitizeFilePath("invalidformat.png"))
-		assert.Equal(t, "", sanitizeFilePath("file.js; rm -rf /"))
-		assert.Equal(t, "", sanitizeFilePath("file.js && suspicious-call"))
+		assert.Equal(t, "", sanitizeScriptPath(".../file.js"))
+		assert.Equal(t, "", sanitizeScriptPath("./../file.js"))
+		assert.Equal(t, "", sanitizeScriptPath("*/file.js"))
+		assert.Equal(t, "", sanitizeScriptPath(".file.js"))
+		assert.Equal(t, "", sanitizeScriptPath("/.js"))
+		assert.Equal(t, "", sanitizeScriptPath("-.js"))
+		assert.Equal(t, "", sanitizeScriptPath("_.js"))
+		assert.Equal(t, "", sanitizeScriptPath("_invalid$name.js"))
+		assert.Equal(t, "", sanitizeScriptPath("invalid$name.js"))
+		assert.Equal(t, "", sanitizeScriptPath("invalidformat.png"))
+		assert.Equal(t, "", sanitizeScriptPath("file.js; rm -rf /"))
+		assert.Equal(t, "", sanitizeScriptPath("file.js && suspicious-call"))
+	})
+}
+
+func TestSanitizeOutputPath(t *testing.T) {
+	t.Run("Valid Filepaths", func(t *testing.T) {
+		assert.Equal(t, "file.json", sanitizeOutputPath("file.json"))
+		assert.Equal(t, "./file.json", sanitizeOutputPath("./file.json"))
+		assert.Equal(t, "../file.json", sanitizeOutputPath("../file.json"))
+		assert.Equal(t, "../../../file.json", sanitizeOutputPath("../../../file.json"))
+		assert.Equal(t, "file-dash_underscore.json", sanitizeOutputPath("file-dash_underscore.json"))
+		assert.Equal(t, "path/to/file.json", sanitizeOutputPath("path/to/file.json"))
+		assert.Equal(t, "/path/to/file.json", sanitizeOutputPath("/path/to/file.json"))
+	})
+
+	t.Run("Invalid Filepaths", func(t *testing.T) {
+		assert.Equal(t, "", sanitizeOutputPath(".../file.json"))
+		assert.Equal(t, "", sanitizeOutputPath("./../file.json"))
+		assert.Equal(t, "", sanitizeOutputPath("*/file.json"))
+		assert.Equal(t, "", sanitizeOutputPath(".file.json"))
+		assert.Equal(t, "", sanitizeOutputPath("/.json"))
+		assert.Equal(t, "", sanitizeOutputPath("-.json"))
+		assert.Equal(t, "", sanitizeOutputPath("_.json"))
+		assert.Equal(t, "", sanitizeOutputPath("_invalid$name.json"))
+		assert.Equal(t, "", sanitizeOutputPath("invalid$name.json"))
+		assert.Equal(t, "", sanitizeOutputPath("invalidformat.png"))
+		assert.Equal(t, "", sanitizeOutputPath("file.json; rm -rf /"))
+		assert.Equal(t, "", sanitizeOutputPath("file.json && suspicious-call"))
+	})
+}
+
+func TestSanitizeSetupPath(t *testing.T) {
+	t.Run("Valid Filepaths", func(t *testing.T) {
+		assert.Equal(t, "file.sh", sanitizeSetupPath("file.sh"))
+		assert.Equal(t, "./file.sh", sanitizeSetupPath("./file.sh"))
+		assert.Equal(t, "../file.sh", sanitizeSetupPath("../file.sh"))
+		assert.Equal(t, "../../../file.sh", sanitizeSetupPath("../../../file.sh"))
+		assert.Equal(t, "file-dash_underscore.sh", sanitizeSetupPath("file-dash_underscore.sh"))
+		assert.Equal(t, "path/to/file.sh", sanitizeSetupPath("path/to/file.sh"))
+		assert.Equal(t, "/path/to/file.sh", sanitizeSetupPath("/path/to/file.sh"))
+	})
+
+	t.Run("Invalid Filepaths", func(t *testing.T) {
+		assert.Equal(t, "", sanitizeSetupPath(".../file.sh"))
+		assert.Equal(t, "", sanitizeSetupPath("./../file.sh"))
+		assert.Equal(t, "", sanitizeSetupPath("*/file.sh"))
+		assert.Equal(t, "", sanitizeSetupPath(".file.sh"))
+		assert.Equal(t, "", sanitizeSetupPath("/.sh"))
+		assert.Equal(t, "", sanitizeSetupPath("-.sh"))
+		assert.Equal(t, "", sanitizeSetupPath("_.sh"))
+		assert.Equal(t, "", sanitizeSetupPath("_invalid$name.sh"))
+		assert.Equal(t, "", sanitizeSetupPath("invalid$name.sh"))
+		assert.Equal(t, "", sanitizeSetupPath("invalidformat.png"))
+		assert.Equal(t, "", sanitizeSetupPath("file.sh; rm -rf /"))
+		assert.Equal(t, "", sanitizeSetupPath("file.sh && suspicious-call"))
 	})
 }
 
@@ -121,6 +175,59 @@ func TestBuildK6Command(t *testing.T) {
 	})
 }
 
+func TestRunSetupScript(t *testing.T) {
+	clearEnvironment(t)
+
+	buildCommand = MockCommandBuilderWithError(nil)
+	verifyFileExists = func(path string) error {
+		if path != "./test/setup.sh" {
+			return fmt.Errorf("File does not exist at path %s", path)
+		}
+
+		return nil
+	}
+
+	defer func() {
+		buildCommand = buildExecCommand
+		verifyFileExists = checkOSStat
+	}()
+
+	t.Run("Successful setup script", func(t *testing.T) {
+		setFilePathEnvs(t)
+		cfg, err := ConfigFromEnv()
+		assert.NoError(t, err)
+		err = RunSetupScript(cfg)
+		assert.NoError(t, err)
+	})
+
+	t.Run("No setup script", func(t *testing.T) {
+		setFilePathEnvs(t)
+		t.Setenv("PARAMETER_SETUP_SCRIPT_PATH", "")
+		cfg, err := ConfigFromEnv()
+		assert.NoError(t, err)
+		err = RunSetupScript(cfg)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Script file not present", func(t *testing.T) {
+		setFilePathEnvs(t)
+		t.Setenv("PARAMETER_SETUP_SCRIPT_PATH", "./test/doesnotexist.sh")
+		cfg, err := ConfigFromEnv()
+		assert.NoError(t, err)
+		err = RunSetupScript(cfg)
+		assert.ErrorContains(t, err, "read setup script file at")
+	})
+
+	t.Run("Setup script exec error", func(t *testing.T) {
+		buildCommand = MockCommandBuilderWithError(fmt.Errorf("some setup error"))
+		setFilePathEnvs(t)
+		cfg, err := ConfigFromEnv()
+		assert.NoError(t, err)
+		err = RunSetupScript(cfg)
+		assert.ErrorContains(t, err, "run setup script: some setup error")
+	})
+}
+
 func TestRunPerfTests(t *testing.T) {
 	clearEnvironment(t)
 
@@ -145,6 +252,15 @@ func TestRunPerfTests(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("Script file not present", func(t *testing.T) {
+		setFilePathEnvs(t)
+		t.Setenv("PARAMETER_SCRIPT_PATH", "./test/doesnotexist.js")
+		cfg, err := ConfigFromEnv()
+		assert.NoError(t, err)
+		err = RunPerfTests(cfg)
+		assert.ErrorContains(t, err, "read script file at")
+	})
+
 	t.Run("Error if thresholds breached", func(t *testing.T) {
 		buildCommand = MockCommandBuilderWithError(&MockThresholdError{})
 		setFilePathEnvs(t)
@@ -162,6 +278,15 @@ func TestRunPerfTests(t *testing.T) {
 		assert.NoError(t, err)
 		err = RunPerfTests(cfg)
 		assert.NoError(t, err)
+	})
+
+	t.Run("Other exec error", func(t *testing.T) {
+		buildCommand = MockCommandBuilderWithError(fmt.Errorf("some exec error"))
+		setFilePathEnvs(t)
+		cfg, err := ConfigFromEnv()
+		assert.NoError(t, err)
+		err = RunPerfTests(cfg)
+		assert.ErrorContains(t, err, "some exec error")
 	})
 }
 
