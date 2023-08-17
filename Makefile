@@ -1,6 +1,6 @@
 BIN_LOCATION ?= release/vela-k6
-BIN_NAME ?= github.com/go-vela/vela-k6
-MAIN_LOCATION ?= .
+BIN_NAME ?= github.com/go-vela/vela-k6/cmd/vela-k6
+MAIN_LOCATION ?= ./cmd/vela-k6
 
 # capture the current date we build the application from
 BUILD_DATE = $(shell date +%Y-%m-%dT%H:%M:%SZ)
