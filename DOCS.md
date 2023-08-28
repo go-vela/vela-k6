@@ -1,4 +1,4 @@
-# Description
+## Description
 
 This plugin uses [Grafana k6](https://k6.io/) to run performance tests in a Vela pipeline.
 

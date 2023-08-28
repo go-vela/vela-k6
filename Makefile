@@ -67,7 +67,7 @@ check-all:
 	@go fmt ./...
 
 .PHONY: lint-all
-lint-all: golangci-lint mdl yamllint
+lint-all: golangci-lint mdl yamllint hadolint shellcheck codespell
 
 .PHONY: clean-all
 clean-all:
@@ -98,6 +98,16 @@ endif
 	@golangci-lint run ./...
 	@echo finished running golangci-lint
 
+.PHONY: codespell
+codespell:
+ifeq ($(strip $(shell which codespell)),)
+ifneq ($(strip $(shell which pip)),)
+	@pip install codespell
+endif
+endif
+	@codespell --skip node_modules,.git,public,package-lock.json,vendor
+	@echo finished running codespell
+
 .PHONY: yamllint
 yamllint:
 ifeq ($(strip $(shell which yamllint)),)
@@ -108,6 +118,26 @@ endif
 	@yamllint -f colored -c .yamllint.yml .
 	@echo finished running yamllint
 
+.PHONY: hadolint
+hadolint:
+ifeq ($(strip $(shell which hadolint)),)
+ifeq ($(shell uname -s), Darwin)
+	@brew install hadolint
+endif
+endif
+	@hadolint --ignore DL3018 --ignore DL3007 ./Dockerfile
+	@echo finished running hadolint
+
+.PHONY: shellcheck
+shellcheck:
+ifeq ($(strip $(shell which shellcheck)),)
+ifeq ($(shell uname -s), Darwin)
+	@brew install shellcheck
+endif
+endif
+	@find . -name \*.sh ! -path "./vendor/*" | xargs -I {} shellcheck {}
+	@echo finished running shellcheck
+
 .PHONY: mdl
 mdl:
 ifeq ($(strip $(shell which mdl)),)
@@ -115,7 +145,9 @@ ifneq ($(strip $(shell which gem)),)
 	@gem install mdl
 endif
 endif
-	@mdl -g --rules ~MD007,~MD013 .
+	@find . -name '*.md' ! -name "DOCS.md" ! -path "./vendor/*" | xargs mdl --rules ~MD007,~MD013
+# ignore top level header for docs
+	@mdl DOCS.md --rules ~MD007,~MD013,~MD002
 	@echo finished running mdl
 
 # The `build-all` target is intended to compile
