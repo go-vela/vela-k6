@@ -4,8 +4,8 @@ github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ3
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/go-vela/types v0.20.1 h1:hHAX0Iij2J7UZ9f3SlXbwNy481CjKzU9CBfkiLuysVE=
-github.com/go-vela/types v0.20.1/go.mod h1:AXO4oQSygOBQ02fPapsKjQHkx2aQO3zTu7clpvVbXBY=
+github.com/go-vela/types v0.20.3 h1:vrX9pFTzTHbtfjHdbAwp9Ii3hWx3OSZ8qTINyaq2j2k=
+github.com/go-vela/types v0.20.3/go.mod h1:AXO4oQSygOBQ02fPapsKjQHkx2aQO3zTu7clpvVbXBY=
 github.com/kr/pretty v0.2.0 h1:s5hAObm+yFO5uHYt5dYjxi2rXrsnmRpJx4OYvIWUaQs=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
 github.com/kr/text v0.2.0/go.mod h1:eLer722TekiGuMkidMxC/pM04lWEeraHUUmBw8l2grE=
