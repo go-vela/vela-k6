@@ -26,9 +26,9 @@ Please see our [support](SUPPORT.md) documentation for further instructions.
 ## Copyright and License
 
 ```text
-Copyright (c) 2023 Target Brands, Inc.
+Copyright 2023 Target Brands, Inc.
 ```
 
 The Grafana Labs Marks are trademarks of Grafana Labs, and are used with Grafana Labs’ permission. We are not affiliated with, endorsed or sponsored by Grafana Labs or its affiliates.
 
-[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+[Apache License, Version 2.0](../LICENSE)
