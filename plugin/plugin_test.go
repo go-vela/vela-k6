@@ -113,6 +113,7 @@ func TestConfigFromEnv(t *testing.T) {
 	clearEnvironment(t)
 	t.Run("Files Only", func(t *testing.T) {
 		setFilePathEnvs(t)
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
 		assert.Equal(t, "./test/script.js", cfg.ScriptPath)
@@ -132,6 +133,7 @@ func TestConfigFromEnv(t *testing.T) {
 	})
 	t.Run("Invalid Script Path", func(t *testing.T) {
 		t.Setenv("PARAMETER_SCRIPT_PATH", "./script.png")
+
 		cfg, err := ConfigFromEnv()
 		assert.Error(t, err)
 		assert.Nil(t, cfg)
@@ -142,8 +144,10 @@ func TestBuildK6Command(t *testing.T) {
 	clearEnvironment(t)
 	t.Run("No Output", func(t *testing.T) {
 		t.Setenv("PARAMETER_SCRIPT_PATH", "./test/script.js")
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
+
 		cmd, err := buildK6Command(cfg)
 		assert.NoError(t, err)
 		assert.Contains(t, cmd.String(), "k6 run -q ./test/script.js")
@@ -151,16 +155,20 @@ func TestBuildK6Command(t *testing.T) {
 	t.Run("Projektor Compat Output", func(t *testing.T) {
 		setFilePathEnvs(t)
 		t.Setenv("PARAMETER_PROJEKTOR_COMPAT_MODE", "true")
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
+
 		cmd, err := buildK6Command(cfg)
 		assert.NoError(t, err)
 		assert.Contains(t, cmd.String(), "k6 run -q --summary-export=./output.json ./test/script.js")
 	})
 	t.Run("K6 Recommended Output", func(t *testing.T) {
 		setFilePathEnvs(t)
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
+
 		cmd, err := buildK6Command(cfg)
 		assert.NoError(t, err)
 		assert.Contains(t, cmd.String(), "k6 run -q --out json=./output.json ./test/script.js")
@@ -168,8 +176,10 @@ func TestBuildK6Command(t *testing.T) {
 	t.Run("Verbose logging", func(t *testing.T) {
 		t.Setenv("PARAMETER_SCRIPT_PATH", "./test/script.js")
 		t.Setenv("PARAMETER_LOG_PROGRESS", "true")
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
+
 		cmd, err := buildK6Command(cfg)
 		assert.NoError(t, err)
 		assert.Contains(t, cmd.String(), "k6 run ./test/script.js")
@@ -195,8 +205,10 @@ func TestRunSetupScript(t *testing.T) {
 
 	t.Run("Successful setup script", func(t *testing.T) {
 		setFilePathEnvs(t)
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
+
 		err = RunSetupScript(cfg)
 		assert.NoError(t, err)
 	})
@@ -204,8 +216,10 @@ func TestRunSetupScript(t *testing.T) {
 	t.Run("No setup script", func(t *testing.T) {
 		setFilePathEnvs(t)
 		t.Setenv("PARAMETER_SETUP_SCRIPT_PATH", "")
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
+
 		err = RunSetupScript(cfg)
 		assert.NoError(t, err)
 	})
@@ -213,17 +227,22 @@ func TestRunSetupScript(t *testing.T) {
 	t.Run("Script file not present", func(t *testing.T) {
 		setFilePathEnvs(t)
 		t.Setenv("PARAMETER_SETUP_SCRIPT_PATH", "./test/doesnotexist.sh")
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
+
 		err = RunSetupScript(cfg)
 		assert.ErrorContains(t, err, "read setup script file at")
 	})
 
 	t.Run("Setup script exec error", func(t *testing.T) {
-		buildCommand = mock.CommandBuilderWithError(fmt.Errorf("some setup error"))
 		setFilePathEnvs(t)
+
+		buildCommand = mock.CommandBuilderWithError(fmt.Errorf("some setup error"))
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
+
 		err = RunSetupScript(cfg)
 		assert.ErrorContains(t, err, "run setup script: some setup error")
 	})
@@ -247,58 +266,64 @@ func TestRunPerfTests(t *testing.T) {
 	}()
 	t.Run("Successful Perf Tests", func(t *testing.T) {
 		setFilePathEnvs(t)
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
-		err = RunPerfTests(cfg)
-		assert.NoError(t, err)
+		assert.NoError(t, RunPerfTests(cfg))
 	})
 
 	t.Run("Script file not present", func(t *testing.T) {
 		setFilePathEnvs(t)
 		t.Setenv("PARAMETER_SCRIPT_PATH", "./test/doesnotexist.js")
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
-		err = RunPerfTests(cfg)
-		assert.ErrorContains(t, err, "read script file at")
+		assert.ErrorContains(t, RunPerfTests(cfg), "read script file at")
 	})
 
 	t.Run("Error if thresholds breached", func(t *testing.T) {
-		buildCommand = mock.CommandBuilderWithError(&mock.ThresholdError{})
 		setFilePathEnvs(t)
+
+		buildCommand = mock.CommandBuilderWithError(&mock.ThresholdError{})
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
-		err = RunPerfTests(cfg)
-		assert.ErrorContains(t, err, "thresholds breached")
+		assert.ErrorContains(t, RunPerfTests(cfg), "thresholds breached")
 	})
 
 	t.Run("No error if thresholds breached", func(t *testing.T) {
-		buildCommand = mock.CommandBuilderWithError(&mock.ThresholdError{})
 		setFilePathEnvs(t)
 		t.Setenv("PARAMETER_FAIL_ON_THRESHOLD_BREACH", "false")
+
+		buildCommand = mock.CommandBuilderWithError(&mock.ThresholdError{})
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
-		err = RunPerfTests(cfg)
-		assert.NoError(t, err)
+		assert.NoError(t, RunPerfTests(cfg))
 	})
 
 	t.Run("Other exec error", func(t *testing.T) {
-		buildCommand = mock.CommandBuilderWithError(fmt.Errorf("some exec error"))
 		setFilePathEnvs(t)
+
+		buildCommand = mock.CommandBuilderWithError(fmt.Errorf("some exec error"))
+
 		cfg, err := ConfigFromEnv()
 		assert.NoError(t, err)
-		err = RunPerfTests(cfg)
-		assert.ErrorContains(t, err, "some exec error")
+		assert.ErrorContains(t, RunPerfTests(cfg), "some exec error")
 	})
 }
 
 func TestReadLinesFromPipe(t *testing.T) {
 	t.Run("Reads from pipe and closes", func(t *testing.T) {
 		var buf bytes.Buffer
-		prevOut := log.Writer()
+
 		log.SetOutput(&buf)
+
+		prevOut := log.Writer()
 		defer func() {
 			log.SetOutput(prevOut)
 		}()
+
 		line1 := "this is line 1"
 		line2 := "this is line 2"
 		reader := io.NopCloser(strings.NewReader(fmt.Sprintf("%s\n%s", line1, line2)))
@@ -306,6 +331,7 @@ func TestReadLinesFromPipe(t *testing.T) {
 		// same wait group logic as used in plugin
 		wg := sync.WaitGroup{}
 		wg.Add(1)
+
 		go readLinesFromPipe(reader, &wg)
 		wg.Wait()
 
