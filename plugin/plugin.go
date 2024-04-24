@@ -89,9 +89,7 @@ func buildK6Command(cfg *Config) (cmd types.ShellCommand, err error) {
 
 	if cfg.OutputPath != "" {
 		outputDir := filepath.Dir(cfg.OutputPath)
-		err = os.MkdirAll(outputDir, os.FileMode(0755))
-
-		if err != nil {
+		if err = os.MkdirAll(outputDir, os.FileMode(0755)); err != nil {
 			return
 		}
 
