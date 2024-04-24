@@ -343,3 +343,8 @@ func TestReadLinesFromPipe(t *testing.T) {
 		assert.Contains(t, logLine, line2)
 	})
 }
+
+func TestCheckOSStat(t *testing.T) {
+	assert.Error(t, checkOSStat("./test/doesnotexist.js"))
+	assert.NoError(t, checkOSStat("plugin.go"))
+}
