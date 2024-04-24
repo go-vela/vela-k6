@@ -5,13 +5,22 @@
   ],
   "packageRules": [
     {
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchPackagePatterns": [
+        "*"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "pinDigest",
+        "digest",
+        "lockFileMaintenance",
+        "rollback",
+        "bump"
+      ],
+      "groupName": "update all non-major dependencies",
+      "groupSlug": "all-minor-patch-digest-pin",
       "automerge": true
     },
-    {
-      "matchDepTypes": ["devDependencies"],
-      "automerge": true
-    }
   ],
-  "platformAutomerge": true
 }
