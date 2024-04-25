@@ -159,6 +159,7 @@ func TestConfigFromEnv(t *testing.T) {
 func TestBuildK6Command(t *testing.T) {
 	t.Run("No Output", func(t *testing.T) {
 		t.Parallel()
+
 		p := &pluginType{
 			config:           config{ScriptPath: "./test/script.js"},
 			buildCommand:     buildExecCommand,
