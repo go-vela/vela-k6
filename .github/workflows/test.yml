@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: clone
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
 
       - name: install go
         uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5
@@ -29,7 +29,7 @@ jobs:
           go test -race -covermode=atomic -coverprofile=coverage.out ./...
 
       - name: coverage
-        uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # v4
+        uses: codecov/codecov-action@84508663e988701840491b86de86b666e8a86bed # v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: coverage.out
