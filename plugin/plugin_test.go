@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -30,6 +31,8 @@ func clearEnvironment(t *testing.T) {
 
 func TestSanitizeScriptPath(t *testing.T) {
 	t.Run("Valid Filepaths", func(t *testing.T) {
+		t.Parallel()
+
 		assert.Equal(t, "file.js", sanitizeScriptPath("file.js"))
 		assert.Equal(t, "./file.js", sanitizeScriptPath("./file.js"))
 		assert.Equal(t, "../file.js", sanitizeScriptPath("../file.js"))
@@ -40,6 +43,8 @@ func TestSanitizeScriptPath(t *testing.T) {
 	})
 
 	t.Run("Invalid Filepaths", func(t *testing.T) {
+		t.Parallel()
+
 		assert.Equal(t, "", sanitizeScriptPath(".../file.js"))
 		assert.Equal(t, "", sanitizeScriptPath("./../file.js"))
 		assert.Equal(t, "", sanitizeScriptPath("*/file.js"))
@@ -57,6 +62,8 @@ func TestSanitizeScriptPath(t *testing.T) {
 
 func TestSanitizeOutputPath(t *testing.T) {
 	t.Run("Valid Filepaths", func(t *testing.T) {
+		t.Parallel()
+
 		assert.Equal(t, "file.json", sanitizeOutputPath("file.json"))
 		assert.Equal(t, "./file.json", sanitizeOutputPath("./file.json"))
 		assert.Equal(t, "../file.json", sanitizeOutputPath("../file.json"))
@@ -67,6 +74,8 @@ func TestSanitizeOutputPath(t *testing.T) {
 	})
 
 	t.Run("Invalid Filepaths", func(t *testing.T) {
+		t.Parallel()
+
 		assert.Equal(t, "", sanitizeOutputPath(".../file.json"))
 		assert.Equal(t, "", sanitizeOutputPath("./../file.json"))
 		assert.Equal(t, "", sanitizeOutputPath("*/file.json"))
@@ -84,6 +93,8 @@ func TestSanitizeOutputPath(t *testing.T) {
 
 func TestSanitizeSetupPath(t *testing.T) {
 	t.Run("Valid Filepaths", func(t *testing.T) {
+		t.Parallel()
+
 		assert.Equal(t, "file.sh", sanitizeSetupPath("file.sh"))
 		assert.Equal(t, "./file.sh", sanitizeSetupPath("./file.sh"))
 		assert.Equal(t, "../file.sh", sanitizeSetupPath("../file.sh"))
@@ -94,6 +105,8 @@ func TestSanitizeSetupPath(t *testing.T) {
 	})
 
 	t.Run("Invalid Filepaths", func(t *testing.T) {
+		t.Parallel()
+
 		assert.Equal(t, "", sanitizeSetupPath(".../file.sh"))
 		assert.Equal(t, "", sanitizeSetupPath("./../file.sh"))
 		assert.Equal(t, "", sanitizeSetupPath("*/file.sh"))
@@ -113,74 +126,106 @@ func TestConfigFromEnv(t *testing.T) {
 	clearEnvironment(t)
 	t.Run("Files Only", func(t *testing.T) {
 		setFilePathEnvs(t)
-		cfg, err := ConfigFromEnv()
+
+		p := &pluginType{}
+		err := p.ConfigFromEnv()
 		assert.NoError(t, err)
-		assert.Equal(t, "./test/script.js", cfg.ScriptPath)
-		assert.Equal(t, "./output.json", cfg.OutputPath)
+		assert.Equal(t, "./test/script.js", p.config.ScriptPath)
+		assert.Equal(t, "./output.json", p.config.OutputPath)
 	})
 	t.Run("Non-Default Options", func(t *testing.T) {
 		setFilePathEnvs(t)
 		t.Setenv("PARAMETER_PROJEKTOR_COMPAT_MODE", "true")
 		t.Setenv("PARAMETER_FAIL_ON_THRESHOLD_BREACH", "false")
 
-		cfg, err := ConfigFromEnv()
+		p := &pluginType{}
+		err := p.ConfigFromEnv()
 		assert.NoError(t, err)
-		assert.Equal(t, "./test/script.js", cfg.ScriptPath)
-		assert.Equal(t, "./output.json", cfg.OutputPath)
-		assert.True(t, cfg.ProjektorCompatMode)
-		assert.False(t, cfg.FailOnThresholdBreach)
+		assert.Equal(t, "./test/script.js", p.config.ScriptPath)
+		assert.Equal(t, "./output.json", p.config.OutputPath)
+		assert.True(t, p.config.ProjektorCompatMode)
+		assert.False(t, p.config.FailOnThresholdBreach)
 	})
 	t.Run("Invalid Script Path", func(t *testing.T) {
 		t.Setenv("PARAMETER_SCRIPT_PATH", "./script.png")
-		cfg, err := ConfigFromEnv()
+
+		p := &pluginType{}
+		err := p.ConfigFromEnv()
 		assert.Error(t, err)
-		assert.Nil(t, cfg)
+		assert.Empty(t, p.config)
 	})
 }
 
 func TestBuildK6Command(t *testing.T) {
-	clearEnvironment(t)
 	t.Run("No Output", func(t *testing.T) {
-		t.Setenv("PARAMETER_SCRIPT_PATH", "./test/script.js")
-		cfg, err := ConfigFromEnv()
-		assert.NoError(t, err)
-		cmd, err := buildK6Command(cfg)
+		t.Parallel()
+
+		p := &pluginType{
+			config:           config{ScriptPath: "./test/script.js"},
+			buildCommand:     buildExecCommand,
+			verifyFileExists: checkOSStat,
+		}
+
+		cmd, err := p.buildK6Command()
 		assert.NoError(t, err)
 		assert.Contains(t, cmd.String(), "k6 run -q ./test/script.js")
 	})
 	t.Run("Projektor Compat Output", func(t *testing.T) {
-		setFilePathEnvs(t)
-		t.Setenv("PARAMETER_PROJEKTOR_COMPAT_MODE", "true")
-		cfg, err := ConfigFromEnv()
-		assert.NoError(t, err)
-		cmd, err := buildK6Command(cfg)
+		t.Parallel()
+
+		p := &pluginType{
+			config: config{
+				ScriptPath:          "./test/script.js",
+				OutputPath:          "./output.json",
+				SetupScriptPath:     "./test/setup.sh",
+				ProjektorCompatMode: true,
+			},
+			buildCommand:     buildExecCommand,
+			verifyFileExists: checkOSStat,
+		}
+
+		cmd, err := p.buildK6Command()
 		assert.NoError(t, err)
 		assert.Contains(t, cmd.String(), "k6 run -q --summary-export=./output.json ./test/script.js")
 	})
 	t.Run("K6 Recommended Output", func(t *testing.T) {
-		setFilePathEnvs(t)
-		cfg, err := ConfigFromEnv()
-		assert.NoError(t, err)
-		cmd, err := buildK6Command(cfg)
+		t.Parallel()
+
+		p := &pluginType{
+			config: config{
+				ScriptPath:      "./test/script.js",
+				OutputPath:      "./output.json",
+				SetupScriptPath: "./test/setup.sh",
+			},
+			buildCommand:     buildExecCommand,
+			verifyFileExists: checkOSStat,
+		}
+
+		cmd, err := p.buildK6Command()
 		assert.NoError(t, err)
 		assert.Contains(t, cmd.String(), "k6 run -q --out json=./output.json ./test/script.js")
 	})
 	t.Run("Verbose logging", func(t *testing.T) {
-		t.Setenv("PARAMETER_SCRIPT_PATH", "./test/script.js")
-		t.Setenv("PARAMETER_LOG_PROGRESS", "true")
-		cfg, err := ConfigFromEnv()
-		assert.NoError(t, err)
-		cmd, err := buildK6Command(cfg)
+		t.Parallel()
+
+		p := &pluginType{
+			config: config{
+				ScriptPath:  "./test/script.js",
+				LogProgress: true,
+			},
+			buildCommand:     buildExecCommand,
+			verifyFileExists: checkOSStat,
+		}
+
+		cmd, err := p.buildK6Command()
 		assert.NoError(t, err)
 		assert.Contains(t, cmd.String(), "k6 run ./test/script.js")
 	})
 }
 
 func TestRunSetupScript(t *testing.T) {
-	clearEnvironment(t)
-
-	buildCommand = mock.CommandBuilderWithError(nil)
-	verifyFileExists = func(path string) error {
+	buildCommand := mock.CommandBuilderWithError(nil, nil, nil, nil)
+	verifyFileExists := func(path string) error {
 		if path != "./test/setup.sh" {
 			return fmt.Errorf("File does not exist at path %s", path)
 		}
@@ -188,52 +233,123 @@ func TestRunSetupScript(t *testing.T) {
 		return nil
 	}
 
-	defer func() {
-		buildCommand = buildExecCommand
-		verifyFileExists = checkOSStat
-	}()
-
 	t.Run("Successful setup script", func(t *testing.T) {
-		setFilePathEnvs(t)
-		cfg, err := ConfigFromEnv()
-		assert.NoError(t, err)
-		err = RunSetupScript(cfg)
+		t.Parallel()
+
+		p := &pluginType{
+			config: config{
+				ScriptPath:      "./test/script.js",
+				OutputPath:      "./output.json",
+				SetupScriptPath: "./test/setup.sh",
+			},
+			buildCommand:     buildCommand,
+			verifyFileExists: verifyFileExists,
+		}
+
+		err := p.RunSetupScript()
 		assert.NoError(t, err)
 	})
 
 	t.Run("No setup script", func(t *testing.T) {
-		setFilePathEnvs(t)
-		t.Setenv("PARAMETER_SETUP_SCRIPT_PATH", "")
-		cfg, err := ConfigFromEnv()
-		assert.NoError(t, err)
-		err = RunSetupScript(cfg)
+		t.Parallel()
+
+		p := &pluginType{
+			config: config{
+				ScriptPath: "./test/script.js",
+				OutputPath: "./output.json",
+			},
+			buildCommand:     buildCommand,
+			verifyFileExists: verifyFileExists,
+		}
+		err := p.RunSetupScript()
 		assert.NoError(t, err)
 	})
 
 	t.Run("Script file not present", func(t *testing.T) {
-		setFilePathEnvs(t)
-		t.Setenv("PARAMETER_SETUP_SCRIPT_PATH", "./test/doesnotexist.sh")
-		cfg, err := ConfigFromEnv()
-		assert.NoError(t, err)
-		err = RunSetupScript(cfg)
+		t.Parallel()
+
+		p := &pluginType{
+			config: config{
+				ScriptPath:      "./test/script.js",
+				OutputPath:      "./output.json",
+				SetupScriptPath: "./test/doesnotexist.sh",
+			},
+			buildCommand:     buildCommand,
+			verifyFileExists: verifyFileExists,
+		}
+
+		err := p.RunSetupScript()
 		assert.ErrorContains(t, err, "read setup script file at")
 	})
+	t.Run("StdoutPipe error", func(t *testing.T) {
+		t.Parallel()
 
+		p := &pluginType{
+			config: config{
+				ScriptPath:      "./test/script.js",
+				OutputPath:      "./output.json",
+				SetupScriptPath: "./test/setup.sh",
+			},
+			buildCommand:     mock.CommandBuilderWithError(nil, errors.New("some error"), nil, nil),
+			verifyFileExists: verifyFileExists,
+		}
+
+		err := p.RunSetupScript()
+		assert.ErrorContains(t, err, "get stdout pipe")
+	})
+	t.Run("StderrPipeErr error", func(t *testing.T) {
+		t.Parallel()
+
+		p := &pluginType{
+			config: config{
+				ScriptPath:      "./test/script.js",
+				OutputPath:      "./output.json",
+				SetupScriptPath: "./test/setup.sh",
+			},
+			buildCommand:     mock.CommandBuilderWithError(nil, nil, errors.New("some error"), nil),
+			verifyFileExists: verifyFileExists,
+		}
+
+		err := p.RunSetupScript()
+		assert.ErrorContains(t, err, "get stderr pipe")
+	})
+	t.Run("Start error", func(t *testing.T) {
+		t.Parallel()
+
+		p := &pluginType{
+			config: config{
+				ScriptPath:      "./test/script.js",
+				OutputPath:      "./output.json",
+				SetupScriptPath: "./test/setup.sh",
+			},
+			buildCommand:     mock.CommandBuilderWithError(nil, nil, nil, errors.New("some error")),
+			verifyFileExists: verifyFileExists,
+		}
+
+		err := p.RunSetupScript()
+		assert.ErrorContains(t, err, "start command")
+	})
 	t.Run("Setup script exec error", func(t *testing.T) {
-		buildCommand = mock.CommandBuilderWithError(fmt.Errorf("some setup error"))
-		setFilePathEnvs(t)
-		cfg, err := ConfigFromEnv()
-		assert.NoError(t, err)
-		err = RunSetupScript(cfg)
+		t.Parallel()
+
+		p := &pluginType{
+			config: config{
+				ScriptPath:      "./test/script.js",
+				OutputPath:      "./output.json",
+				SetupScriptPath: "./test/setup.sh",
+			},
+			buildCommand:     mock.CommandBuilderWithError(errors.New("some setup error"), nil, nil, nil),
+			verifyFileExists: verifyFileExists,
+		}
+
+		err := p.RunSetupScript()
 		assert.ErrorContains(t, err, "run setup script: some setup error")
 	})
 }
 
 func TestRunPerfTests(t *testing.T) {
-	clearEnvironment(t)
-
-	buildCommand = mock.CommandBuilderWithError(nil)
-	verifyFileExists = func(path string) error {
+	buildCommand := mock.CommandBuilderWithError(nil, nil, nil, nil)
+	verifyFileExists := func(path string) error {
 		if path != "./test/script.js" {
 			return fmt.Errorf("File does not exist at path %s", path)
 		}
@@ -241,64 +357,97 @@ func TestRunPerfTests(t *testing.T) {
 		return nil
 	}
 
-	defer func() {
-		buildCommand = buildExecCommand
-		verifyFileExists = checkOSStat
-	}()
 	t.Run("Successful Perf Tests", func(t *testing.T) {
-		setFilePathEnvs(t)
-		cfg, err := ConfigFromEnv()
-		assert.NoError(t, err)
-		err = RunPerfTests(cfg)
-		assert.NoError(t, err)
+		t.Parallel()
+
+		p := &pluginType{
+			config: config{
+				ScriptPath:      "./test/script.js",
+				OutputPath:      "./output.json",
+				SetupScriptPath: "./test/setup.sh",
+			},
+			buildCommand:     buildCommand,
+			verifyFileExists: verifyFileExists,
+		}
+		assert.NoError(t, p.RunPerfTests())
 	})
 
 	t.Run("Script file not present", func(t *testing.T) {
-		setFilePathEnvs(t)
-		t.Setenv("PARAMETER_SCRIPT_PATH", "./test/doesnotexist.js")
-		cfg, err := ConfigFromEnv()
-		assert.NoError(t, err)
-		err = RunPerfTests(cfg)
-		assert.ErrorContains(t, err, "read script file at")
+		t.Parallel()
+
+		p := &pluginType{
+			config: config{
+				ScriptPath:      "./test/doesnotexist.js",
+				OutputPath:      "./output.json",
+				SetupScriptPath: "./test/setup.sh",
+			},
+			buildCommand:     buildCommand,
+			verifyFileExists: verifyFileExists,
+		}
+		assert.ErrorContains(t, p.RunPerfTests(), "read script file at")
 	})
 
 	t.Run("Error if thresholds breached", func(t *testing.T) {
-		buildCommand = mock.CommandBuilderWithError(&mock.ThresholdError{})
-		setFilePathEnvs(t)
-		cfg, err := ConfigFromEnv()
-		assert.NoError(t, err)
-		err = RunPerfTests(cfg)
-		assert.ErrorContains(t, err, "thresholds breached")
+		t.Parallel()
+
+		p := &pluginType{
+			config: config{
+				ScriptPath:            "./test/script.js",
+				OutputPath:            "./output.json",
+				SetupScriptPath:       "./test/setup.sh",
+				FailOnThresholdBreach: true,
+			},
+			buildCommand:     mock.CommandBuilderWithError(&mock.ThresholdError{}, nil, nil, nil),
+			verifyFileExists: verifyFileExists,
+		}
+		assert.ErrorContains(t, p.RunPerfTests(), "thresholds breached")
 	})
 
 	t.Run("No error if thresholds breached", func(t *testing.T) {
-		buildCommand = mock.CommandBuilderWithError(&mock.ThresholdError{})
-		setFilePathEnvs(t)
-		t.Setenv("PARAMETER_FAIL_ON_THRESHOLD_BREACH", "false")
-		cfg, err := ConfigFromEnv()
-		assert.NoError(t, err)
-		err = RunPerfTests(cfg)
-		assert.NoError(t, err)
+		t.Parallel()
+
+		p := &pluginType{
+			config: config{
+				ScriptPath:            "./test/script.js",
+				OutputPath:            "./output.json",
+				SetupScriptPath:       "./test/setup.sh",
+				FailOnThresholdBreach: false,
+			},
+			buildCommand:     mock.CommandBuilderWithError(&mock.ThresholdError{}, nil, nil, nil),
+			verifyFileExists: verifyFileExists,
+		}
+
+		assert.NoError(t, p.RunPerfTests())
 	})
 
 	t.Run("Other exec error", func(t *testing.T) {
-		buildCommand = mock.CommandBuilderWithError(fmt.Errorf("some exec error"))
-		setFilePathEnvs(t)
-		cfg, err := ConfigFromEnv()
-		assert.NoError(t, err)
-		err = RunPerfTests(cfg)
-		assert.ErrorContains(t, err, "some exec error")
+		t.Parallel()
+
+		p := &pluginType{
+			config: config{
+				ScriptPath:            "./test/script.js",
+				OutputPath:            "./output.json",
+				SetupScriptPath:       "./test/setup.sh",
+				FailOnThresholdBreach: true,
+			},
+			buildCommand:     mock.CommandBuilderWithError(errors.New("some exec error"), nil, nil, nil),
+			verifyFileExists: verifyFileExists,
+		}
+		assert.ErrorContains(t, p.RunPerfTests(), "some exec error")
 	})
 }
 
 func TestReadLinesFromPipe(t *testing.T) {
 	t.Run("Reads from pipe and closes", func(t *testing.T) {
 		var buf bytes.Buffer
-		prevOut := log.Writer()
+
 		log.SetOutput(&buf)
+
+		prevOut := log.Writer()
 		defer func() {
 			log.SetOutput(prevOut)
 		}()
+
 		line1 := "this is line 1"
 		line2 := "this is line 2"
 		reader := io.NopCloser(strings.NewReader(fmt.Sprintf("%s\n%s", line1, line2)))
@@ -306,6 +455,7 @@ func TestReadLinesFromPipe(t *testing.T) {
 		// same wait group logic as used in plugin
 		wg := sync.WaitGroup{}
 		wg.Add(1)
+
 		go readLinesFromPipe(reader, &wg)
 		wg.Wait()
 
@@ -316,4 +466,14 @@ func TestReadLinesFromPipe(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Contains(t, logLine, line2)
 	})
+}
+
+func TestCheckOSStat(t *testing.T) {
+	assert.Error(t, checkOSStat("./test/doesnotexist.js"))
+	assert.NoError(t, checkOSStat("plugin.go"))
+}
+
+func TestNew(t *testing.T) {
+	p := New()
+	assert.NotNil(t, p)
 }

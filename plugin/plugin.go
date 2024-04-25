@@ -18,6 +18,25 @@ import (
 
 const thresholdsBreachedExitCode = 99
 
+type pluginType struct {
+	config           config
+	buildCommand     func(name string, args ...string) types.ShellCommand // buildCommand can be swapped out for a mock function for unit testing.
+	verifyFileExists func(path string) error                              // verifyFileExists can be swapped out for a mock function for unit testing.
+}
+
+type Plugin interface {
+	ConfigFromEnv() error
+	RunSetupScript() error
+	RunPerfTests() error
+}
+
+func New() Plugin {
+	return &pluginType{
+		buildCommand:     buildExecCommand,
+		verifyFileExists: checkOSStat,
+	}
+}
+
 // buildExecCommand returns a ShellCommand with the given arguments. The
 // return type of ShellCommand is for mocking purposes.
 func buildExecCommand(name string, args ...string) types.ShellCommand {
@@ -35,30 +54,26 @@ var (
 	validJSFilePattern    = regexp.MustCompile(`^(\./|(\.\./)+)?[a-zA-Z0-9-_/]*[a-zA-Z0-9]\.js$`)
 	validJSONFilePattern  = regexp.MustCompile(`^(\./|(\.\./)+)?[a-zA-Z0-9-_/]*[a-zA-Z0-9]\.json$`)
 	validShellFilePattern = regexp.MustCompile(`^(\./|(\.\./)+)?[a-zA-Z0-9-_/]*[a-zA-Z0-9]\.sh$`)
-	// buildCommand can be swapped out for a mock function for unit testing.
-	buildCommand = buildExecCommand
-	// verifyFileExists can be swapped out for a mock function for unit testing.
-	verifyFileExists = checkOSStat
 )
 
 // ConfigFromEnv returns a Config populated with the values of the Vela
 // parameters. Script and output paths will be sanitized/validated, and
 // an error is returned if the script path is empty or invalid. If the
 // output path is invalid, OutputPath is set to "".
-func ConfigFromEnv() (*Config, error) {
-	cfg := &Config{}
-	cfg.ScriptPath = sanitizeScriptPath(os.Getenv("PARAMETER_SCRIPT_PATH"))
-	cfg.OutputPath = sanitizeOutputPath(os.Getenv("PARAMETER_OUTPUT_PATH"))
-	cfg.SetupScriptPath = sanitizeSetupPath(os.Getenv("PARAMETER_SETUP_SCRIPT_PATH"))
-	cfg.FailOnThresholdBreach = !strings.EqualFold(os.Getenv("PARAMETER_FAIL_ON_THRESHOLD_BREACH"), "false")
-	cfg.ProjektorCompatMode = strings.EqualFold(os.Getenv("PARAMETER_PROJEKTOR_COMPAT_MODE"), "true")
-	cfg.LogProgress = strings.EqualFold(os.Getenv("PARAMETER_LOG_PROGRESS"), "true")
+func (p *pluginType) ConfigFromEnv() error {
+	p.config.ScriptPath = sanitizeScriptPath(os.Getenv("PARAMETER_SCRIPT_PATH"))
+	p.config.OutputPath = sanitizeOutputPath(os.Getenv("PARAMETER_OUTPUT_PATH"))
+	p.config.SetupScriptPath = sanitizeSetupPath(os.Getenv("PARAMETER_SETUP_SCRIPT_PATH"))
+	p.config.FailOnThresholdBreach = !strings.EqualFold(os.Getenv("PARAMETER_FAIL_ON_THRESHOLD_BREACH"), "false")
+	p.config.ProjektorCompatMode = strings.EqualFold(os.Getenv("PARAMETER_PROJEKTOR_COMPAT_MODE"), "true")
+	p.config.LogProgress = strings.EqualFold(os.Getenv("PARAMETER_LOG_PROGRESS"), "true")
 
-	if cfg.ScriptPath == "" || !strings.HasSuffix(cfg.ScriptPath, ".js") {
-		return nil, fmt.Errorf("invalid script file. provide the filepath to a JavaScript file in plugin parameter 'script_path' (e.g. 'script_path: \"/k6-test/script.js\"'). the filepath must follow the regular expression `%s`", validJSFilePattern)
+	if p.config.ScriptPath == "" || !strings.HasSuffix(p.config.ScriptPath, ".js") {
+		p.config = config{} // reset config
+		return fmt.Errorf("invalid script file. provide the filepath to a JavaScript file in plugin parameter 'script_path' (e.g. 'script_path: \"/k6-test/script.js\"'). the filepath must follow the regular expression `%s`", validJSFilePattern)
 	}
 
-	return cfg, nil
+	return nil
 }
 
 // sanitizeScriptPath returns the input string if it satisfies the pattern
@@ -81,47 +96,45 @@ func sanitizeSetupPath(input string) string {
 
 // buildK6Command returns a ShellCommand that will execute K6 tests
 // using the script path, output path, and output type in cfg.
-func buildK6Command(cfg *Config) (cmd types.ShellCommand, err error) {
+func (p *pluginType) buildK6Command() (cmd types.ShellCommand, err error) {
 	commandArgs := []string{"run"}
-	if !cfg.LogProgress {
+	if !p.config.LogProgress {
 		commandArgs = append(commandArgs, "-q")
 	}
 
-	if cfg.OutputPath != "" {
-		outputDir := filepath.Dir(cfg.OutputPath)
-		err = os.MkdirAll(outputDir, os.FileMode(0755))
-
-		if err != nil {
+	if p.config.OutputPath != "" {
+		outputDir := filepath.Dir(p.config.OutputPath)
+		if err = os.MkdirAll(outputDir, os.FileMode(0755)); err != nil {
 			return
 		}
 
-		if cfg.ProjektorCompatMode {
-			commandArgs = append(commandArgs, fmt.Sprintf("--summary-export=%s", cfg.OutputPath))
+		if p.config.ProjektorCompatMode {
+			commandArgs = append(commandArgs, fmt.Sprintf("--summary-export=%s", p.config.OutputPath))
 		} else {
-			commandArgs = append(commandArgs, "--out", fmt.Sprintf("json=%s", cfg.OutputPath))
+			commandArgs = append(commandArgs, "--out", fmt.Sprintf("json=%s", p.config.OutputPath))
 		}
 	}
 
-	commandArgs = append(commandArgs, cfg.ScriptPath)
-	cmd = buildCommand("k6", commandArgs...)
+	commandArgs = append(commandArgs, p.config.ScriptPath)
+	cmd = p.buildCommand("k6", commandArgs...)
 
 	return
 }
 
 // RunSetupScript runs the setup script located at the cfg.SetupScriptPath
 // if the path is not empty.
-func RunSetupScript(cfg *Config) error {
-	if cfg.SetupScriptPath == "" {
+func (p *pluginType) RunSetupScript() error {
+	if p.config.SetupScriptPath == "" {
 		log.Println("No setup script specified, skipping.")
 		return nil
 	}
 
-	err := verifyFileExists(cfg.SetupScriptPath)
+	err := p.verifyFileExists(p.config.SetupScriptPath)
 	if err != nil {
-		return fmt.Errorf("read setup script file at %s: %w", cfg.SetupScriptPath, err)
+		return fmt.Errorf("read setup script file at %s: %w", p.config.SetupScriptPath, err)
 	}
 
-	cmd := buildCommand(cfg.SetupScriptPath)
+	cmd := p.buildCommand(p.config.SetupScriptPath)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -155,15 +168,15 @@ func RunSetupScript(cfg *Config) error {
 }
 
 // RunPerfTests runs the K6 performance test script located at the
-// cfg.ScriptPath and saves the output to cfg.OutputPath if it is present
+// p.config.ScriptPath and saves the output to p.config.OutputPath if it is present
 // and a valid filepath.
-func RunPerfTests(cfg *Config) error {
-	err := verifyFileExists(cfg.ScriptPath)
+func (p *pluginType) RunPerfTests() error {
+	err := p.verifyFileExists(p.config.ScriptPath)
 	if err != nil {
-		return fmt.Errorf("read script file at %s: %w", cfg.ScriptPath, err)
+		return fmt.Errorf("read script file at %s: %w", p.config.ScriptPath, err)
 	}
 
-	cmd, err := buildK6Command(cfg)
+	cmd, err := p.buildK6Command()
 	if err != nil {
 		return fmt.Errorf("create output directory: %w", err)
 	}
@@ -198,7 +211,7 @@ func RunPerfTests(cfg *Config) error {
 		ok := errors.As(execError, &exitError)
 
 		if ok && exitError.ExitCode() == thresholdsBreachedExitCode {
-			if cfg.FailOnThresholdBreach {
+			if p.config.FailOnThresholdBreach {
 				return fmt.Errorf("thresholds breached")
 			}
 		} else {
@@ -206,10 +219,10 @@ func RunPerfTests(cfg *Config) error {
 		}
 	}
 
-	if cfg.OutputPath != "" {
-		path, err := filepath.Abs(cfg.OutputPath)
+	if p.config.OutputPath != "" {
+		path, err := filepath.Abs(p.config.OutputPath)
 		if err != nil {
-			log.Printf("save output to %s: %s\n", cfg.OutputPath, err)
+			log.Printf("save output to %s: %s\n", p.config.OutputPath, err)
 		} else {
 			log.Printf("Output file saved at %s\n", path)
 		}
@@ -232,7 +245,7 @@ func readLinesFromPipe(pipe io.ReadCloser, wg *sync.WaitGroup) {
 	}
 }
 
-type Config struct {
+type config struct {
 	ScriptPath            string
 	OutputPath            string
 	SetupScriptPath       string

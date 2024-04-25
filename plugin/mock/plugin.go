@@ -11,12 +11,15 @@ import (
 const thresholdsBreachedExitCode = 99
 
 type Command struct {
-	args    []string
-	waitErr error
+	args          []string
+	waitErr       error
+	stdoutPipeErr error
+	stderrPipeErr error
+	startErr      error
 }
 
 func (m *Command) Start() error {
-	return nil
+	return m.startErr
 }
 
 func (m *Command) Wait() error {
@@ -29,21 +32,24 @@ func (m *Command) String() (str string) {
 
 func (m *Command) StdoutPipe() (io.ReadCloser, error) {
 	dummyReader := strings.NewReader("")
-	return io.NopCloser(dummyReader), nil
+	return io.NopCloser(dummyReader), m.stdoutPipeErr
 }
 
 func (m *Command) StderrPipe() (io.ReadCloser, error) {
 	dummyReader := strings.NewReader("")
-	return io.NopCloser(dummyReader), nil
+	return io.NopCloser(dummyReader), m.stderrPipeErr
 }
 
 // CommandBuilderWithError returns a function that will return a mock.Command
 // which will return the specified waitErr on cmd.Wait().
-func CommandBuilderWithError(waitErr error) func(string, ...string) types.ShellCommand {
+func CommandBuilderWithError(waitErr error, stdoutPipeErr error, stderrPipeErr error, startErr error) func(string, ...string) types.ShellCommand {
 	return func(name string, args ...string) types.ShellCommand {
 		return &Command{
-			args:    append([]string{name}, args...),
-			waitErr: waitErr,
+			args:          append([]string{name}, args...),
+			waitErr:       waitErr,
+			stdoutPipeErr: stdoutPipeErr,
+			stderrPipeErr: stderrPipeErr,
+			startErr:      startErr,
 		}
 	}
 }

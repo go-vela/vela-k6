@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-vela/vela-k6/plugin"
 	"github.com/go-vela/vela-k6/version"
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -16,26 +15,27 @@ func main() {
 	v := version.New()
 
 	// serialize the version information as pretty JSON
-	bytes, err := json.MarshalIndent(v, "", "  ")
-	if err != nil {
-		logrus.Fatal(err)
+	var bytes []byte
+
+	var err error
+
+	if bytes, err = json.MarshalIndent(v, "", "  "); err != nil {
+		log.Fatal(err)
 	}
 
 	// output the version information to stdout
 	fmt.Fprintf(os.Stdout, "%s\n", string(bytes))
 
-	cfg, err := plugin.ConfigFromEnv()
-	if err != nil {
+	p := plugin.New()
+	if err = p.ConfigFromEnv(); err != nil {
 		log.Fatalf("FATAL: %s\n", err)
 	}
 
-	err = plugin.RunSetupScript(cfg)
-	if err != nil {
+	if err = p.RunSetupScript(); err != nil {
 		log.Fatalf("FATAL: %s\n", err)
 	}
 
-	err = plugin.RunPerfTests(cfg)
-	if err != nil {
+	if err = p.RunPerfTests(); err != nil {
 		log.Fatalf("FATAL: %s\n", err)
 	}
 }
