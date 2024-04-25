@@ -50,7 +50,7 @@ func TestStderrPipe(t *testing.T) {
 }
 
 func TestCommandBuilderWithError(t *testing.T) {
-	result := CommandBuilderWithError(errors.New("some error"))
+	result := CommandBuilderWithError(errors.New("some error"), nil, nil, nil)
 	assert.ErrorContains(t, result("start").Wait(), "some error")
 }
 
