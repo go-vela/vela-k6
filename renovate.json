@@ -21,6 +21,6 @@
       "groupName": "update all non-major dependencies",
       "groupSlug": "all-minor-patch-digest-pin",
       "automerge": true
-    },
-  ],
+    }
+  ]
 }
