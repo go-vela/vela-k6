@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: labeler
-        uses: codelytv/pr-size-labeler@13d17c48b702e11c1b7199bd9f9220c2b747cf5f
+        uses: codelytv/pr-size-labeler@e13c249affa373466ee491cbca41c13d7d882463
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           xs_label: "size/xs"
