@@ -5,9 +5,6 @@
   ],
   "packageRules": [
     {
-      "matchPackagePatterns": [
-        "*"
-      ],
       "matchUpdateTypes": [
         "minor",
         "patch",
@@ -20,7 +17,10 @@
       ],
       "groupName": "update all non-major dependencies",
       "groupSlug": "all-minor-patch-digest-pin",
-      "automerge": true
+      "automerge": true,
+      "matchPackageNames": [
+        "*"
+      ]
     }
   ]
 }
