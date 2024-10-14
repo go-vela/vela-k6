@@ -1,12 +1,10 @@
 module github.com/go-vela/vela-k6
 
-go 1.21.9
-
-toolchain go1.23.1
+go 1.23.2
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.0
-	github.com/go-vela/types v0.24.0
+	github.com/go-vela/types v0.25.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
 )
