@@ -1,6 +1,6 @@
-FROM docker.io/grafana/k6:0.55.0@sha256:b24f418fc99a26dd57904c952c03bfaf79462be18508acc45aafa07ff68e7df2 as k6-image
+FROM docker.io/grafana/k6:0.55.1@sha256:88a0ce2faa0f4b80e7b49191d13d86da2cb5bbf302696f93e1f68bb6c2fd0400 as k6-image
 
-FROM alpine:3.20@sha256:1e42bbe2508154c9126d48c2b8a75420c3544343bf86fd041fb7527e017a4b4a as certs
+FROM alpine:3.21@sha256:21dc6063fd678b478f57c0e13f47560d0ea4eeba26dfc947b2a4f81f686b9f45 as certs
 
 RUN apk add --update --no-cache ca-certificates bash
 
