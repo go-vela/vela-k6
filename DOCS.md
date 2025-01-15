@@ -56,3 +56,13 @@ export const options = {
   ...
 };
 ```
+
+## Parameters
+
+> **NOTE:**
+>
+> The plugin supports reading all parameters via environment variables or files.
+>
+> Any values set from a file take precedence over values set from the environment.
+
+The following parameters are used to configure the image:
