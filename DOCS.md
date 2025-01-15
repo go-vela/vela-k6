@@ -6,8 +6,6 @@ Source Code: https://github.com/go-vela/vela-k6
 
 Registry: https://hub.docker.com/r/target/vela-k6
 
-`$`
-
 ## Usage
 
 Below is a simple example using the plugin. In this hypothetical repository, the k6 test script is located at `./k6-test/script.js`. In this step, a file named `test-results.json` will be created in the current directory with the test results.
@@ -72,3 +70,8 @@ The following parameters are used to configure the image:
 | Name                       | Description                                                                                                                                                                                                                          | Required | Default |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------- |
 | `script_path`              | path to the k6 script file. must be a JavaScript file satisfying the pattern `^(\./\|(\.\./)+)?[a-zA-Z0-9-_/]*[a-zA-Z0-9]\.js$`.                                                                                                     | `true`   | `N/A`   |
+| `output_path`              | path to the output file that will be created. directories will be created as necessary. if empty, no output file will be generated. must be a JSON file satisfying the pattern `^(\./\|(\.\./)+)?[a-zA-Z0-9-_/]*[a-zA-Z0-9]\.json$`. | `false`  | `N/A`   |
+| `setup_script_path`        | path to an optional setup script file to be run before tests. must be a shell script (sh or bash) with execute permissions matching the pattern `^(\./\|(\.\./)+)?[a-zA-Z0-9-_/]*[a-zA-Z0-9]\.sh$`.                                  | `false`  | `N/A`   |
+| `fail_on_threshold_breach` | if `false`, the pipeline step will not fail even if thresholds are breached.                                                                                                                                                         | `false`  | `true`  |
+| `projektor_compat_mode`    | if `true`, output will be generated with the `--summary-output` flag instead of the `--out` flag. this is necessary for results uploaded to a [Projektor](https://projektor.dev/) server.                                            | `false`  | `false` |
+| `log_progress`             | if `true`, k6 progress bar output will print to the Vela pipeline. Not recommended for numerous or long-running tests, as logging becomes excessive.                                                                                 | `false`  | `false` |
