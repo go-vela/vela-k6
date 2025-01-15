@@ -6,6 +6,8 @@ Source Code: https://github.com/go-vela/vela-k6
 
 Registry: https://hub.docker.com/r/target/vela-k6
 
+`$`
+
 ## Usage
 
 Below is a simple example using the plugin. In this hypothetical repository, the k6 test script is located at `./k6-test/script.js`. In this step, a file named `test-results.json` will be created in the current directory with the test results.
@@ -69,4 +71,4 @@ The following parameters are used to configure the image:
 
 | Name                       | Description                                                                                                                                                                                                                          | Required | Default |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------- |
-| `script_path`              | path to the k6 script file. must be a JavaScript file satisfying the pattern `^(\./\|(\.\./)+)?[a-zA-Z0-9-_/]*[a-zA-Z0-9]\.js`.                                                                                                     | `true`   | `N/A`   |
+| `script_path`              | path to the k6 script file. must be a JavaScript file satisfying the pattern `^(\./\|(\.\./)+)?[a-zA-Z0-9-_/]*[a-zA-Z0-9]\.js$`.                                                                                                     | `true`   | `N/A`   |
