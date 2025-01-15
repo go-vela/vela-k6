@@ -69,4 +69,4 @@ The following parameters are used to configure the image:
 
 | Name                       | Description                                                                                                                                                                                                                          | Required | Default |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------- |
-| `script_path`              | path to the k6 script file. must be a JavaScript file satisfying the pattern `??`.                                                                                                     | `true`   | `N/A`   |
+| `script_path`              | path to the k6 script file. must be a JavaScript file satisfying the pattern `^(\./\|(\.\./)+)?[a-zA-Z0-9-_/]*[a-zA-Z0-9]\.js$`.                                                                                                     | `true`   | `N/A`   |
