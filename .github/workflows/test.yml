@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: install go
-        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5
         with:
           # use version from go.mod file
           go-version-file: "go.mod"
@@ -29,7 +29,7 @@ jobs:
           go test -race -covermode=atomic -coverprofile=coverage.out ./...
 
       - name: coverage
-        uses: codecov/codecov-action@015f24e6818733317a2da2edd6290ab26238649a # v5
+        uses: codecov/codecov-action@1e68e06f1dbfde0e4cefc87efeba9e4643565303 # v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: coverage.out
