@@ -3,7 +3,7 @@ package version
 import (
 	"testing"
 
-	"github.com/go-vela/types/version"
+	"github.com/go-vela/server/version"
 	"github.com/stretchr/testify/assert"
 )
 
