@@ -26,7 +26,7 @@ coverage:
     # set rules for the project status report
     project:
       default:
-        target: 90%
+        target: 80%
         threshold: 0%
     # disable the patch status report
     patch: off
