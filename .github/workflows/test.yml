@@ -33,3 +33,4 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: coverage.out
+          exclude: cmd/vela-k6
