@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package version
 
 import (
@@ -8,15 +10,21 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	const (
+		goVersion   = "go1.20.7"
+		osVersion   = "darwin"
+		archVersion = "arm64"
+	)
+
 	t.Run("Valid Version Output", func(t *testing.T) {
 		// to avoid flaky tests, set the values
-		Go = "go1.20.7"
-		OS = "darwin"
+		Go = goVersion
+		OS = osVersion
 		Compiler = "gc"
 		Tag = "v1.1.1"
 		Commit = "000"
 		Date = "111"
-		Arch = "arm64"
+		Arch = archVersion
 
 		expected := version.Version{
 			Canonical: "v1.1.1",
@@ -36,13 +44,13 @@ func TestNew(t *testing.T) {
 	})
 	t.Run("no tag", func(t *testing.T) {
 		// to avoid flaky tests, set the values
-		Go = "go1.20.7"
-		OS = "darwin"
+		Go = goVersion
+		OS = osVersion
 		Compiler = "gc"
 		Tag = ""
 		Commit = "000"
 		Date = "111"
-		Arch = "arm64"
+		Arch = archVersion
 
 		expected := version.Version{
 			Canonical: "v0.0.0",
@@ -59,13 +67,13 @@ func TestNew(t *testing.T) {
 	})
 	t.Run("invalid tag", func(t *testing.T) {
 		// to avoid flaky tests, set the values
-		Go = "go1.20.7"
-		OS = "darwin"
+		Go = goVersion
+		OS = osVersion
 		Compiler = "gc"
 		Tag = "something"
 		Commit = "000"
 		Date = "111"
-		Arch = "arm64"
+		Arch = archVersion
 
 		expected := version.Version{
 			Canonical: "something",

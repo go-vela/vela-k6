@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+
+// Package version provides the version information for the Vela application.
 package version
 
 import (
