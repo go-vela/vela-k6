@@ -1,3 +1,8 @@
+// SPDX-License-Identifier: Apache-2.0
+
+// Package main is the entry point for the Vela K6 plugin.
+// It captures the version information, configures the plugin from environment variables,
+// runs the setup script, and executes performance tests.
 package main
 
 import (
@@ -24,7 +29,7 @@ func main() {
 	}
 
 	// output the version information to stdout
-	fmt.Fprintf(os.Stdout, "%s\n", string(bytes))
+	_, _ = fmt.Fprintf(os.Stdout, "%s\n", string(bytes))
 
 	p := plugin.New()
 	if err = p.ConfigFromEnv(); err != nil {

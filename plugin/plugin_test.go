@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package plugin
 
 import (
@@ -40,30 +42,6 @@ func TestSanitizeScriptPath(t *testing.T) {
 		assert.Equal(t, "file-dash_underscore.js", sanitizeScriptPath("file-dash_underscore.js"))
 		assert.Equal(t, "path/to/file.js", sanitizeScriptPath("path/to/file.js"))
 		assert.Equal(t, "/path/to/file.js", sanitizeScriptPath("/path/to/file.js"))
-	})
-
-	t.Run("Invalid Filepaths", func(t *testing.T) {
-		t.Parallel()
-
-		assert.Equal(t, "", sanitizeScriptPath(".../file.js"))
-		assert.Equal(t, "", sanitizeScriptPath("./../file.js"))
-		assert.Equal(t, "", sanitizeScriptPath("*/file.js"))
-		assert.Equal(t, "", sanitizeScriptPath(".file.js"))
-		assert.Equal(t, "", sanitizeScriptPath("/.js"))
-		assert.Equal(t, "", sanitizeScriptPath("-.js"))
-		assert.Equal(t, "", sanitizeScriptPath("_.js"))
-		assert.Equal(t, "", sanitizeScriptPath("_invalid$name.js"))
-		assert.Equal(t, "", sanitizeScriptPath("invalid$name.js"))
-		assert.Equal(t, "", sanitizeScriptPath("invalidformat.png"))
-		assert.Equal(t, "", sanitizeScriptPath("file.js; rm -rf /"))
-		assert.Equal(t, "", sanitizeScriptPath("file.js && suspicious-call"))
-	})
-}
-
-func TestSanitizeOutputPath(t *testing.T) {
-	t.Run("Valid Filepaths", func(t *testing.T) {
-		t.Parallel()
-
 		assert.Equal(t, "file.json", sanitizeOutputPath("file.json"))
 		assert.Equal(t, "./file.json", sanitizeOutputPath("./file.json"))
 		assert.Equal(t, "../file.json", sanitizeOutputPath("../file.json"))
@@ -76,18 +54,30 @@ func TestSanitizeOutputPath(t *testing.T) {
 	t.Run("Invalid Filepaths", func(t *testing.T) {
 		t.Parallel()
 
-		assert.Equal(t, "", sanitizeOutputPath(".../file.json"))
-		assert.Equal(t, "", sanitizeOutputPath("./../file.json"))
-		assert.Equal(t, "", sanitizeOutputPath("*/file.json"))
-		assert.Equal(t, "", sanitizeOutputPath(".file.json"))
-		assert.Equal(t, "", sanitizeOutputPath("/.json"))
-		assert.Equal(t, "", sanitizeOutputPath("-.json"))
-		assert.Equal(t, "", sanitizeOutputPath("_.json"))
-		assert.Equal(t, "", sanitizeOutputPath("_invalid$name.json"))
-		assert.Equal(t, "", sanitizeOutputPath("invalid$name.json"))
-		assert.Equal(t, "", sanitizeOutputPath("invalidformat.png"))
-		assert.Equal(t, "", sanitizeOutputPath("file.json; rm -rf /"))
-		assert.Equal(t, "", sanitizeOutputPath("file.json && suspicious-call"))
+		assert.Empty(t, sanitizeScriptPath(".../file.js"))
+		assert.Empty(t, sanitizeScriptPath("./../file.js"))
+		assert.Empty(t, sanitizeScriptPath("*/file.js"))
+		assert.Empty(t, sanitizeScriptPath(".file.js"))
+		assert.Empty(t, sanitizeScriptPath("/.js"))
+		assert.Empty(t, sanitizeScriptPath("-.js"))
+		assert.Empty(t, sanitizeScriptPath("_.js"))
+		assert.Empty(t, sanitizeScriptPath("_invalid$name.js"))
+		assert.Empty(t, sanitizeScriptPath("invalid$name.js"))
+		assert.Empty(t, sanitizeScriptPath("invalidformat.png"))
+		assert.Empty(t, sanitizeScriptPath("file.js; rm -rf /"))
+		assert.Empty(t, sanitizeScriptPath("file.js && suspicious-call"))
+		assert.Empty(t, sanitizeOutputPath(".../file.json"))
+		assert.Empty(t, sanitizeOutputPath("./../file.json"))
+		assert.Empty(t, sanitizeOutputPath("*/file.json"))
+		assert.Empty(t, sanitizeOutputPath(".file.json"))
+		assert.Empty(t, sanitizeOutputPath("/.json"))
+		assert.Empty(t, sanitizeOutputPath("-.json"))
+		assert.Empty(t, sanitizeOutputPath("_.json"))
+		assert.Empty(t, sanitizeOutputPath("_invalid$name.json"))
+		assert.Empty(t, sanitizeOutputPath("invalid$name.json"))
+		assert.Empty(t, sanitizeOutputPath("invalidformat.png"))
+		assert.Empty(t, sanitizeOutputPath("file.json; rm -rf /"))
+		assert.Empty(t, sanitizeOutputPath("file.json && suspicious-call"))
 	})
 }
 
@@ -107,18 +97,18 @@ func TestSanitizeSetupPath(t *testing.T) {
 	t.Run("Invalid Filepaths", func(t *testing.T) {
 		t.Parallel()
 
-		assert.Equal(t, "", sanitizeSetupPath(".../file.sh"))
-		assert.Equal(t, "", sanitizeSetupPath("./../file.sh"))
-		assert.Equal(t, "", sanitizeSetupPath("*/file.sh"))
-		assert.Equal(t, "", sanitizeSetupPath(".file.sh"))
-		assert.Equal(t, "", sanitizeSetupPath("/.sh"))
-		assert.Equal(t, "", sanitizeSetupPath("-.sh"))
-		assert.Equal(t, "", sanitizeSetupPath("_.sh"))
-		assert.Equal(t, "", sanitizeSetupPath("_invalid$name.sh"))
-		assert.Equal(t, "", sanitizeSetupPath("invalid$name.sh"))
-		assert.Equal(t, "", sanitizeSetupPath("invalidformat.png"))
-		assert.Equal(t, "", sanitizeSetupPath("file.sh; rm -rf /"))
-		assert.Equal(t, "", sanitizeSetupPath("file.sh && suspicious-call"))
+		assert.Empty(t, sanitizeSetupPath(".../file.sh"))
+		assert.Empty(t, sanitizeSetupPath("./../file.sh"))
+		assert.Empty(t, sanitizeSetupPath("*/file.sh"))
+		assert.Empty(t, sanitizeSetupPath(".file.sh"))
+		assert.Empty(t, sanitizeSetupPath("/.sh"))
+		assert.Empty(t, sanitizeSetupPath("-.sh"))
+		assert.Empty(t, sanitizeSetupPath("_.sh"))
+		assert.Empty(t, sanitizeSetupPath("_invalid$name.sh"))
+		assert.Empty(t, sanitizeSetupPath("invalid$name.sh"))
+		assert.Empty(t, sanitizeSetupPath("invalidformat.png"))
+		assert.Empty(t, sanitizeSetupPath("file.sh; rm -rf /"))
+		assert.Empty(t, sanitizeSetupPath("file.sh && suspicious-call"))
 	})
 }
 

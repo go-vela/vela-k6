@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+
+// Package plugin provides the implementation of the Vela K6 plugin.
 package plugin
 
 import (
@@ -24,12 +27,16 @@ type pluginType struct {
 	verifyFileExists func(path string) error                              // verifyFileExists can be swapped out for a mock function for unit testing.
 }
 
+// Plugin is the interface that defines the methods for the Vela K6 plugin.
 type Plugin interface {
 	ConfigFromEnv() error
 	RunSetupScript() error
 	RunPerfTests() error
 }
 
+// New returns a new instance of the Vela K6 plugin with default
+// implementations for buildCommand and verifyFileExists. This allows
+// for easy mocking in unit tests.
 func New() Plugin {
 	return &pluginType{
 		buildCommand:     buildExecCommand,

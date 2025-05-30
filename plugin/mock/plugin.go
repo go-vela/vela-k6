@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: Apache-2.0
+
+// Package mock provides mock implementations of the types.ShellCommand interface
+// and a mock ThresholdError that simulates a threshold breach error.
 package mock
 
 import (
@@ -10,6 +14,7 @@ import (
 
 const thresholdsBreachedExitCode = 99
 
+// Command is a mock implementation of the types.ShellCommand interface.
 type Command struct {
 	args          []string
 	waitErr       error
@@ -18,23 +23,28 @@ type Command struct {
 	startErr      error
 }
 
+// Start is a mock implementation of the Start method.
 func (m *Command) Start() error {
 	return m.startErr
 }
 
+// Wait is a mock implementation of the Wait method.
 func (m *Command) Wait() error {
 	return m.waitErr
 }
 
+// String is a mock implementation of the String method.
 func (m *Command) String() (str string) {
 	return ""
 }
 
+// StdoutPipe is a mock implementation of the StdoutPipe method.
 func (m *Command) StdoutPipe() (io.ReadCloser, error) {
 	dummyReader := strings.NewReader("")
 	return io.NopCloser(dummyReader), m.stdoutPipeErr
 }
 
+// StderrPipe is a mock implementation of the StderrPipe method.
 func (m *Command) StderrPipe() (io.ReadCloser, error) {
 	dummyReader := strings.NewReader("")
 	return io.NopCloser(dummyReader), m.stderrPipeErr
@@ -54,14 +64,18 @@ func CommandBuilderWithError(waitErr error, stdoutPipeErr error, stderrPipeErr e
 	}
 }
 
+// ThresholdError is a mock implementation of the exec.ExitError interface
+// that simulates a threshold breach error.
 type ThresholdError struct {
 	exec.ExitError
 }
 
+// ExitCode returns the exit code for the mock threshold breach error.
 func (m *ThresholdError) ExitCode() int {
 	return thresholdsBreachedExitCode
 }
 
+// Error returns a string representation of the mock threshold breach error.
 func (m *ThresholdError) Error() string {
 	return "This is a mock threshold breach error"
 }
