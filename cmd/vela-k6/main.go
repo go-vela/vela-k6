@@ -23,7 +23,6 @@ func main() {
 	var bytes []byte
 
 	var err error
-
 	if bytes, err = json.MarshalIndent(v, "", "  "); err != nil {
 		log.Fatal(err)
 	}
