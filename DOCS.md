@@ -12,7 +12,7 @@ Below is a simple example using the plugin. In this hypothetical repository, the
 
 ```yaml
 - name: k6-performance-test
-  image: target/vela-k6:v0.1.0
+  image: target/vela-k6:v0.2.1
   ruleset:
     event: [tag]
   pull: true
@@ -25,7 +25,7 @@ Example using `projektor_compat_mode` parameter, which generates output with the
 
 ```yaml
 - name: k6-performance-test
-  image: target/vela-k6:v0.1.0
+  image: target/vela-k6:v0.2.1
   ruleset:
     event: [tag]
   pull: true
