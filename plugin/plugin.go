@@ -5,6 +5,7 @@ package plugin
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -16,15 +17,15 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-vela/vela-k6/types"
+	"github.com/go-vela/vela-k6/models"
 )
 
 const thresholdsBreachedExitCode = 99
 
 type pluginType struct {
 	config           config
-	buildCommand     func(name string, args ...string) types.ShellCommand // buildCommand can be swapped out for a mock function for unit testing.
-	verifyFileExists func(path string) error                              // verifyFileExists can be swapped out for a mock function for unit testing.
+	buildCommand     func(name string, args ...string) models.ShellCommand // buildCommand can be swapped out for a mock function for unit testing.
+	verifyFileExists func(path string) error                               // verifyFileExists can be swapped out for a mock function for unit testing.
 }
 
 // Plugin is the interface that defines the methods for the Vela K6 plugin.
@@ -46,8 +47,8 @@ func New() Plugin {
 
 // buildExecCommand returns a ShellCommand with the given arguments. The
 // return type of ShellCommand is for mocking purposes.
-func buildExecCommand(name string, args ...string) types.ShellCommand {
-	return exec.Command(name, args...)
+func buildExecCommand(name string, args ...string) models.ShellCommand {
+	return exec.CommandContext(context.Background(), name, args...)
 }
 
 // checkOSStat verifies a file exists at the given path, otherwise returns
@@ -103,7 +104,7 @@ func sanitizeSetupPath(input string) string {
 
 // buildK6Command returns a ShellCommand that will execute K6 tests
 // using the script path, output path, and output type in cfg.
-func (p *pluginType) buildK6Command() (cmd types.ShellCommand, err error) {
+func (p *pluginType) buildK6Command() (cmd models.ShellCommand, err error) {
 	commandArgs := []string{"run"}
 	if !p.config.LogProgress {
 		commandArgs = append(commandArgs, "-q")
@@ -164,6 +165,7 @@ func (p *pluginType) RunSetupScript() error {
 
 	go readLinesFromPipe(stdout, &wg)
 	go readLinesFromPipe(stderr, &wg)
+
 	wg.Wait()
 
 	err = cmd.Wait()
@@ -209,12 +211,13 @@ func (p *pluginType) RunPerfTests() error {
 
 	go readLinesFromPipe(stdout, &wg)
 	go readLinesFromPipe(stderr, &wg)
+
 	wg.Wait()
 
 	execError := cmd.Wait()
-
 	if execError != nil {
-		var exitError types.ErrorWithExitCode
+		var exitError models.ErrorWithExitCode
+
 		ok := errors.As(execError, &exitError)
 
 		if ok && exitError.ExitCode() == thresholdsBreachedExitCode {

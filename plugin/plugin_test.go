@@ -434,6 +434,7 @@ func TestReadLinesFromPipe(t *testing.T) {
 		log.SetOutput(&buf)
 
 		prevOut := log.Writer()
+
 		defer func() {
 			log.SetOutput(prevOut)
 		}()
@@ -447,6 +448,7 @@ func TestReadLinesFromPipe(t *testing.T) {
 		wg.Add(1)
 
 		go readLinesFromPipe(reader, &wg)
+
 		wg.Wait()
 
 		logLine, err := buf.ReadString('\n')

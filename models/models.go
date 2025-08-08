@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
-// Package types defines interfaces and types used in the Vela K6 plugin.
-package types
+// Package models defines interfaces and types used in the Vela K6 plugin.
+package models
 
 import "io"
 
