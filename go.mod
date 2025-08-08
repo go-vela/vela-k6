@@ -2,8 +2,6 @@ module github.com/go-vela/vela-k6
 
 go 1.24.4
 
-toolchain go1.24.5
-
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/go-vela/server v0.27.0
