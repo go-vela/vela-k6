@@ -54,7 +54,7 @@ linters:
     - unused # checks for unused constants, variables, functions and types
     - usetesting # checks to make sure to use testing specific helpers
     - whitespace # detects leading and trailing whitespace
-    - wsl # forces code to use empty lines
+    - wsl_v5 # forces code to use empty lines
 
   # static list of linters we know golangci can run but we've
   # chosen to leave disabled for now
@@ -143,7 +143,10 @@ linters:
       allow-unused: false # allow nolint directives that don't address a linting issue
       require-explanation: true # require an explanation for nolint directives
       require-specific: true # require nolint directives to be specific about which linter is being skipped
-
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2
 
 # This section provides the configuration for how golangci
 # will report the issues it finds.
@@ -159,4 +162,4 @@ issues:
         - funlen
         - goconst
         - gocyclo
-        - wsl
+        - wsl_v5

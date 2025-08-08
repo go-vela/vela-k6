@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-// Package mock provides mock implementations of the types.ShellCommand interface
+// Package mock provides mock implementations of the models.ShellCommand interface
 // and a mock ThresholdError that simulates a threshold breach error.
 package mock
 
@@ -9,12 +9,12 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/go-vela/vela-k6/types"
+	"github.com/go-vela/vela-k6/models"
 )
 
 const thresholdsBreachedExitCode = 99
 
-// Command is a mock implementation of the types.ShellCommand interface.
+// Command is a mock implementation of the models.ShellCommand interface.
 type Command struct {
 	args          []string
 	waitErr       error
@@ -52,8 +52,8 @@ func (m *Command) StderrPipe() (io.ReadCloser, error) {
 
 // CommandBuilderWithError returns a function that will return a mock.Command
 // which will return the specified waitErr on cmd.Wait().
-func CommandBuilderWithError(waitErr error, stdoutPipeErr error, stderrPipeErr error, startErr error) func(string, ...string) types.ShellCommand {
-	return func(name string, args ...string) types.ShellCommand {
+func CommandBuilderWithError(waitErr error, stdoutPipeErr error, stderrPipeErr error, startErr error) func(string, ...string) models.ShellCommand {
+	return func(name string, args ...string) models.ShellCommand {
 		return &Command{
 			args:          append([]string{name}, args...),
 			waitErr:       waitErr,
