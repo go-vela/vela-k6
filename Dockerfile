@@ -1,4 +1,4 @@
-FROM docker.io/grafana/k6:1.2.1@sha256:f19307b2ffb216bd38a5cee297a74b3b6d20706b5c904cf7e0f8919f4370fb96 as k6-image
+FROM docker.io/grafana/k6:1.2.2@sha256:a98db15eb83dfc4dbded9653a15f53557c011400019eba715a9cd15b0ab709d9 as k6-image
 
 FROM alpine:3.22@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1 as certs
 
