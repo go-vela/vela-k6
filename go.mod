@@ -5,7 +5,7 @@ go 1.25.5
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/go-vela/server v0.27.4
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
 )
 
